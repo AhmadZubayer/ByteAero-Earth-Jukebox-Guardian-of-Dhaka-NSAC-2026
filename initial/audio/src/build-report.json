@@ -1,0 +1,315 @@
+{
+ "stems": {
+  "audio/music-master.wav": {
+   "seconds": 240.0,
+   "samples": 11520000,
+   "lufs": -20.6,
+   "true_peak_dbfs": -3.7
+  },
+  "audio/music-judging.wav": {
+   "seconds": 235.0,
+   "samples": 11280000,
+   "lufs": -20.7,
+   "true_peak_dbfs": -3.7
+  },
+  "audio/sonification.wav": {
+   "seconds": 240.0,
+   "samples": 11520000,
+   "lufs": -20.9,
+   "true_peak_dbfs": -7.6
+  },
+  "audio/sfx.wav": {
+   "seconds": 240.0,
+   "samples": 11520000,
+   "lufs": -25.3,
+   "true_peak_dbfs": -6.8
+  },
+  "audio/vo-guide-TEMP.wav": {
+   "seconds": 240.0,
+   "samples": 11520000,
+   "lufs": -19.8,
+   "true_peak_dbfs": -4.3
+  },
+  "delivery/audio/mix-master.wav": {
+   "seconds": 240.0,
+   "samples": 11520000,
+   "lufs": -17.4,
+   "true_peak_dbfs": -1.3
+  },
+  "delivery/audio/mix-judging.wav": {
+   "seconds": 235.0,
+   "samples": 11280000,
+   "lufs": -17.4,
+   "true_peak_dbfs": -1.3
+  }
+ },
+ "guide_vo": {
+  "c01": {
+   "start": 5.6,
+   "end": 9.4,
+   "spoken": 3.7,
+   "rate": 1,
+   "fits": true
+  },
+  "c02": {
+   "start": 9.8,
+   "end": 15.2,
+   "spoken": 4.51,
+   "rate": 1,
+   "fits": true
+  },
+  "c04": {
+   "start": 21,
+   "end": 23,
+   "spoken": 0.85,
+   "rate": 1,
+   "fits": true
+  },
+  "c05": {
+   "start": 25.6,
+   "end": 30.6,
+   "spoken": 4.78,
+   "rate": 0,
+   "fits": true
+  },
+  "c06": {
+   "start": 31,
+   "end": 35.9,
+   "spoken": 5.07,
+   "rate": 0,
+   "fits": true
+  },
+  "c07": {
+   "start": 36.2,
+   "end": 42.3,
+   "spoken": 5.17,
+   "rate": 0,
+   "fits": true
+  },
+  "c08": {
+   "start": 43,
+   "end": 47.6,
+   "spoken": 3.7,
+   "rate": 1,
+   "fits": true
+  },
+  "c09": {
+   "start": 50.3,
+   "end": 55.4,
+   "spoken": 4.91,
+   "rate": 1,
+   "fits": true
+  },
+  "c10": {
+   "start": 55.6,
+   "end": 57.4,
+   "spoken": 1.39,
+   "rate": 1,
+   "fits": true
+  },
+  "c11": {
+   "start": 58.4,
+   "end": 62.4,
+   "spoken": 3.14,
+   "rate": 1,
+   "fits": true
+  },
+  "c12": {
+   "start": 67.7,
+   "end": 69.8,
+   "spoken": 1.38,
+   "rate": 1,
+   "fits": true
+  },
+  "c13": {
+   "start": 72.7,
+   "end": 76.4,
+   "spoken": 2.55,
+   "rate": 1,
+   "fits": true
+  },
+  "c14": {
+   "start": 77.7,
+   "end": 84.6,
+   "spoken": 5.77,
+   "rate": 1,
+   "fits": true
+  },
+  "c16": {
+   "start": 91.3,
+   "end": 94.7,
+   "spoken": 3.35,
+   "rate": 1,
+   "fits": true
+  },
+  "c17": {
+   "start": 95.4,
+   "end": 101.4,
+   "spoken": 4.65,
+   "rate": 1,
+   "fits": true
+  },
+  "c18": {
+   "start": 102.7,
+   "end": 105,
+   "spoken": 1.14,
+   "rate": 1,
+   "fits": true
+  },
+  "c19": {
+   "start": 108,
+   "end": 112,
+   "spoken": 3.45,
+   "rate": 1,
+   "fits": true
+  },
+  "c21": {
+   "start": 132.8,
+   "end": 137.3,
+   "spoken": 4.61,
+   "rate": 1,
+   "fits": true
+  },
+  "c22": {
+   "start": 137.7,
+   "end": 141.9,
+   "spoken": 4.1,
+   "rate": 0,
+   "fits": true
+  },
+  "c23": {
+   "start": 142.2,
+   "end": 145.6,
+   "spoken": 3.64,
+   "rate": 0,
+   "fits": true
+  },
+  "c25": {
+   "start": 150.5,
+   "end": 154,
+   "spoken": 3.12,
+   "rate": 1,
+   "fits": true
+  },
+  "c27": {
+   "start": 163,
+   "end": 167,
+   "spoken": 3.19,
+   "rate": 0,
+   "fits": true
+  },
+  "c28": {
+   "start": 167.4,
+   "end": 172.9,
+   "spoken": 5.54,
+   "rate": 0,
+   "fits": true
+  },
+  "c29": {
+   "start": 173.9,
+   "end": 177.3,
+   "spoken": 2.42,
+   "rate": 1,
+   "fits": true
+  },
+  "c30": {
+   "start": 185.5,
+   "end": 189.7,
+   "spoken": 3.86,
+   "rate": 1,
+   "fits": true
+  },
+  "c31": {
+   "start": 190.2,
+   "end": 195.1,
+   "spoken": 5.01,
+   "rate": 0,
+   "fits": true
+  },
+  "c33": {
+   "start": 200.6,
+   "end": 203.9,
+   "spoken": 2.47,
+   "rate": 0,
+   "fits": true
+  },
+  "c34": {
+   "start": 205.5,
+   "end": 209.5,
+   "spoken": 3.34,
+   "rate": 1,
+   "fits": true
+  },
+  "c36": {
+   "start": 223.4,
+   "end": 226.9,
+   "spoken": 2.55,
+   "rate": 1,
+   "fits": true
+  },
+  "c37": {
+   "start": 227.4,
+   "end": 229.9,
+   "spoken": 1.97,
+   "rate": 1,
+   "fits": true
+  },
+  "c38": {
+   "start": 230.4,
+   "end": 232.7,
+   "spoken": 1.26,
+   "rate": 1,
+   "fits": true
+  },
+  "c03": {
+   "start": 16.2,
+   "end": 20.4,
+   "spoken": 4.33,
+   "rate": 2,
+   "fits": true
+  },
+  "c15": {
+   "start": 85,
+   "end": 91,
+   "spoken": 6.15,
+   "rate": 1,
+   "fits": true
+  },
+  "c24": {
+   "start": 145.9,
+   "end": 149.9,
+   "spoken": 3.77,
+   "rate": 1,
+   "fits": true
+  },
+  "c26": {
+   "start": 154.6,
+   "end": 162.5,
+   "spoken": 7.81,
+   "rate": 1,
+   "fits": true
+  },
+  "c32": {
+   "start": 196,
+   "end": 200.3,
+   "spoken": 4.46,
+   "rate": 1,
+   "fits": true
+  },
+  "c35": {
+   "start": 215.6,
+   "end": 222.7,
+   "spoken": 6.73,
+   "rate": 1,
+   "fits": true
+  },
+  "c20": {
+   "start": 112.5,
+   "end": 120.4,
+   "spoken": 7.63,
+   "rate": 3,
+   "fits": true
+  }
+ },
+ "gain_db": 2.9
+}

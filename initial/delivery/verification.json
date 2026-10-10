@@ -1,0 +1,217 @@
+{
+ "date": "2026-09-29T17:26:01.051Z",
+ "checks": [
+  {
+   "name": "all local assets load from file:// (fonts, images, reference mix, 4 stems)",
+   "ok": true,
+   "detail": [
+    "fonts:ok",
+    "images:ok",
+    "mix:ok",
+    "music:ok",
+    "sono:ok",
+    "sfx:ok",
+    "vo:ok"
+   ]
+  },
+  {
+   "name": "default playback = reference mix only, visual clock within one frame of it",
+   "ok": true,
+   "detail": {
+    "maxD": "0.0040"
+   }
+  },
+  {
+   "name": "audio actually playing (music element not paused)",
+   "ok": true,
+   "detail": {
+    "samples": 80
+   }
+  },
+  {
+   "name": "stems mode: visual clock vs music stem within one frame (33 ms)",
+   "ok": true,
+   "detail": {
+    "maxV": 0.0022
+   }
+  },
+  {
+   "name": "stems mode (after a stem control is touched): followers bounded, median < 10 ms, max < 80 ms, no accumulating drift",
+   "ok": true,
+   "detail": {
+    "samples": 80,
+    "median": 0.0037,
+    "p95": 0.0231,
+    "max": 0.058
+   }
+  },
+  {
+   "name": "judging cut: 7,050 frames, music-judging.wav loaded",
+   "ok": true,
+   "detail": {
+    "frames": 7050,
+    "src": "music-judging.wav",
+    "ready": true
+   }
+  },
+  {
+   "name": "judging cut stops on its last frame (234.967 s, s07)",
+   "ok": true,
+   "detail": {
+    "t": 234.96666666666667,
+    "playing": false,
+    "scene": "s07"
+   }
+  },
+  {
+   "name": "no page errors (preview)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "scene boundaries: start-inclusive, end-exclusive",
+   "ok": true,
+   "detail": [
+    {
+     "t": 0,
+     "expect": "s01",
+     "on": "s01",
+     "prevFrame": null
+    },
+    {
+     "t": 25,
+     "expect": "s02",
+     "on": "s02",
+     "prevFrame": "s01"
+    },
+    {
+     "t": 50,
+     "expect": "s03",
+     "on": "s03",
+     "prevFrame": "s02"
+    },
+    {
+     "t": 95,
+     "expect": "s04",
+     "on": "s04",
+     "prevFrame": "s03"
+    },
+    {
+     "t": 150,
+     "expect": "s05",
+     "on": "s05",
+     "prevFrame": "s04"
+    },
+    {
+     "t": 185,
+     "expect": "s06",
+     "on": "s06",
+     "prevFrame": "s05"
+    },
+    {
+     "t": 215,
+     "expect": "s07",
+     "on": "s07",
+     "prevFrame": "s06"
+    },
+    {
+     "t": 235,
+     "expect": "s08",
+     "on": "s08",
+     "prevFrame": "s07"
+    }
+   ]
+  },
+  {
+   "name": "deterministic seeking: backward seek reproduces forward frame (fewer than 200 channel values differ by more than 3/255)",
+   "ok": true,
+   "detail": {
+    "frames": 15,
+    "worstPixel": 30,
+    "worstMean": 0.00007,
+    "mismatches": []
+   }
+  },
+  {
+   "name": "master: 7,200 frames, last frame 7199 on s08",
+   "ok": true,
+   "detail": {
+    "t": 239.96666666666667,
+    "f": 7199,
+    "scene": "s08",
+    "frames": 7200
+   }
+  },
+  {
+   "name": "Roboto Mono 400/500/700 loaded locally",
+   "ok": true,
+   "detail": {
+    "family": "\"Roboto Mono\", ui-monospace, monospace"
+   }
+  },
+  {
+   "name": "stage images all come from image/",
+   "ok": true,
+   "detail": [
+    "image/earth-blue-marble-2002.jpg",
+    "image/bangladesh-night-lights-2021.jpg",
+    "image/dhaka-landsat-2022.jpg",
+    "image/dhaka-landsat-1988.jpg"
+   ]
+  },
+  {
+   "name": "no wall-clock CSS transitions on the stage",
+   "ok": true,
+   "detail": {
+    "count": 0
+   }
+  },
+  {
+   "name": "critical text/cards inside the 96/54 px safe area",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "on-screen text at least 24 px (excluding Echo/city decoration)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "no page errors (capture)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "reduced-motion preview removes ambient loops",
+   "ok": true,
+   "detail": {
+    "infiniteLoops": 0
+   }
+  },
+  {
+   "name": "solo=echo hides every non-Echo element",
+   "ok": true,
+   "detail": {
+    "visibleOthers": 0
+   }
+  },
+  {
+   "name": "missing audio: visible error, silent clock still plays",
+   "ok": true,
+   "detail": {
+    "status": "Music stem failed to load (audio/music-master.wav). Silent preview clock in use — rebuild audio with tools/build-audio.cmd.",
+    "cls": "status err",
+    "items": [
+     "fonts:ok",
+     "images:ok",
+     "mix:bad",
+     "music:bad",
+     "sono:bad",
+     "sfx:bad",
+     "vo:bad"
+    ],
+    "tAfter1_5s": 1.4985
+   }
+  }
+ ]
+}

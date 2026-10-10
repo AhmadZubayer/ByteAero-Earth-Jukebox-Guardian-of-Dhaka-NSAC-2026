@@ -1,0 +1,124 @@
+{
+ "pass_": true,
+ "cues": [
+  {
+   "stem": "sfx",
+   "cue": 0.625,
+   "picture": "signal ring s01",
+   "onset": 0.6258,
+   "offset_ms": 0.8
+  },
+  {
+   "stem": "sfx",
+   "cue": 5.0,
+   "picture": "Echo lands + ring",
+   "onset": 5.0015,
+   "offset_ms": 1.5
+  },
+  {
+   "stem": "sfx",
+   "cue": 15.0,
+   "picture": "GUARDIAN WANTED card flips in",
+   "onset": 15.0003,
+   "offset_ms": 0.3
+  },
+  {
+   "stem": "sfx",
+   "cue": 46.25,
+   "picture": "name field turns green",
+   "onset": 46.251,
+   "offset_ms": 1.0
+  },
+  {
+   "stem": "sfx",
+   "cue": 54.6,
+   "picture": "tree pops on tapped tile",
+   "onset": 54.6037,
+   "offset_ms": 3.7
+  },
+  {
+   "stem": "sfx",
+   "cue": 93.75,
+   "picture": "GAME UNLOCKED pops",
+   "onset": 93.7548,
+   "offset_ms": 4.8
+  },
+  {
+   "stem": "sfx",
+   "cue": 107.6,
+   "picture": "FOUND reticle",
+   "onset": 107.5997,
+   "offset_ms": -0.3
+  },
+  {
+   "stem": "sfx",
+   "cue": 121.25,
+   "picture": "first coin lands",
+   "onset": 121.2515,
+   "offset_ms": 1.5
+  },
+  {
+   "stem": "sfx",
+   "cue": 110.0,
+   "picture": "countdown starts (0:20)",
+   "onset": 109.9999,
+   "offset_ms": -0.1
+  },
+  {
+   "stem": "sfx",
+   "cue": 129.0,
+   "picture": "last countdown tick (0:01)",
+   "onset": 128.9997,
+   "offset_ms": -0.3
+  },
+  {
+   "stem": "sfx",
+   "cue": 203.75,
+   "picture": "EXAMPLE stamp",
+   "onset": 203.7502,
+   "offset_ms": 0.2
+  },
+  {
+   "stem": "music-low",
+   "cue": 130.0,
+   "picture": "impact boom (sub band)",
+   "onset": 130.0117,
+   "offset_ms": 11.7
+  },
+  {
+   "stem": "music-low",
+   "cue": 232.5,
+   "picture": "final cadence boom (sub band)",
+   "onset": 232.5189,
+   "offset_ms": 18.9
+  },
+  {
+   "stem": "sonification",
+   "cue": 59.0,
+   "picture": "first heat-melody mark",
+   "onset": 59.0032,
+   "offset_ms": 3.2
+  },
+  {
+   "stem": "sonification",
+   "cue": 68.0,
+   "picture": "first rain-drum mark",
+   "onset": 68.0,
+   "offset_ms": 0.0
+  },
+  {
+   "stem": "sonification",
+   "cue": 73.0,
+   "picture": "first greenery chord mark",
+   "onset": 73.017,
+   "offset_ms": 17.0
+  },
+  {
+   "stem": "sonification",
+   "cue": 178.0,
+   "picture": "scan starts at frame edge",
+   "onset": 178.0017,
+   "offset_ms": 1.7
+  }
+ ]
+}

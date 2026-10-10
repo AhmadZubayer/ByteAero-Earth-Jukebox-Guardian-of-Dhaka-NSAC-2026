@@ -1,0 +1,7 @@
+# Delivery media
+/initial/delivery/audio/
+/initial/delivery/video/
+
+# Keep only the src folder inside initial/audio
+/initial/audio/*
+!/initial/audio/src/
