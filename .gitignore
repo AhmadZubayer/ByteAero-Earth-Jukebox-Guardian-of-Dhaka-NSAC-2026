@@ -1,7 +1,4 @@
-# Delivery media
-/initial/delivery/audio/
-/initial/delivery/video/
-
-# Keep only the src folder inside initial/audio
-/initial/audio/*
-!/initial/audio/src/
+# Local generated Site archives and temporary checkouts
+/initial/exports/*.tar.gz
+/initial/.github-push-work/
+/initial/sites/*/.git/
