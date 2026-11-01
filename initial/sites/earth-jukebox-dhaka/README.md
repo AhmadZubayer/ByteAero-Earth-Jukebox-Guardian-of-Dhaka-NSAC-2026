@@ -34,4 +34,4 @@ Sound needs a user click to start. All sound cues have written descriptions. The
 - [NASA FIRMS active-fire definition](https://firms.modaps.eosdis.nasa.gov/)
 - [Home Video font by GGBotNet, CC0](https://ggbot.itch.io/home-video-font/)
 
-The Home Video font loads from GGBotNet's public GitHub repository through jsDelivr. All NASA images used in the experience are bundled in `dist/assets/`. This is an independent Space Apps project, not an official NASA product.
+Home Video Regular and Bold are bundled in `dist/fonts/` under CC0 and used for all game text. All NASA images used in the experience are bundled in `dist/assets/`. This is an independent Space Apps project, not an official NASA product.

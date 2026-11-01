@@ -13,7 +13,8 @@ function stopScan(){
   scanRun=null;
 }
 function show(id){
-  if(!screens.includes(id)||state.transitioning)return;
+  if(!screens.includes(id))return;
+  if(state.transitioning){state.pendingScreen=id;return;}
   stopScan();recordRun++;
   state.transitioning=true;
   $('sceneWipe').classList.remove('go');void $('sceneWipe').offsetWidth;$('sceneWipe').classList.add('go');
@@ -27,14 +28,19 @@ function show(id){
     document.title=`${heading?.innerText.trim().replace(/\s+/g,' ')||'Earth Jukebox'} — Guardian of Dhaka`;
     announce(`${heading?.innerText.trim().replace(/\s+/g,' ')||id} page`);
   };
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches){change();state.transitioning=false;}
-  else setTimeout(()=>{change();setTimeout(()=>state.transitioning=false,320);},230);
+  const finish=()=>{
+    state.transitioning=false;
+    const pending=state.pendingScreen;state.pendingScreen=null;
+    if(pending&&pending!==state.screen)show(pending);
+  };
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){change();finish();}
+  else setTimeout(()=>{change();setTimeout(finish,320);},230);
 }
 
 // NASA's examples sweep through an image and give different data layers different
 // frequency ranges. These original, non-melodic textures are generated here from
 // image color, brightness, and position. They are not NASA recordings or °C values.
-const audio={ctx:null,on:false,master:null,noise:null};
+const audio={ctx:null,on:false,master:null,noise:null,analyser:null,meterTimer:null};
 function initAudio(){
   if(audio.ctx)return true;
   const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -43,7 +49,22 @@ function initAudio(){
   const compressor=ctx.createDynamicsCompressor();
   compressor.threshold.value=-24;compressor.knee.value=18;compressor.ratio.value=5;
   const master=audio.master=ctx.createGain();master.gain.value=.65;
-  master.connect(compressor).connect(ctx.destination);
+  const analyser=audio.analyser=ctx.createAnalyser();analyser.fftSize=2048;
+  master.connect(analyser).connect(compressor).connect(ctx.destination);
+  const meter=$('audioMeter'),samples=new Float32Array(analyser.fftSize),bars=[.7,1,.5,.9,.65];
+  audio.meterTimer=setInterval(()=>{
+    let rms=0,maxAbs=0;
+    if(audio.on&&ctx.state==='running'){
+      analyser.getFloatTimeDomainData(samples);
+      for(const sample of samples){rms+=sample*sample;maxAbs=Math.max(maxAbs,Math.abs(sample));}
+      rms=Math.sqrt(rms/samples.length);
+    }
+    const level=clamp(rms*14),value=Math.round(rms*1000);
+    meter.dataset.level=String(value);
+    meter.dataset.peak=String(Math.max(value,Number(meter.dataset.peak||0)));
+    meter.dataset.max=String(Math.max(Math.round(maxAbs*1000),Number(meter.dataset.max||0)));
+    meter.querySelectorAll('i').forEach((bar,i)=>bar.style.height=`${3+Math.round(level*19*bars[i])}px`);
+  },60);
   const length=Math.round(ctx.sampleRate*2),buffer=ctx.createBuffer(1,length,ctx.sampleRate),data=buffer.getChannelData(0);
   let seed=714271,slow=0;
   for(let i=0;i<length;i++){
@@ -59,6 +80,7 @@ async function setSound(on){
   if(on&&!initAudio()){announce('Sound is unavailable. All sound clues also have words.');return;}
   audio.on=on;
   if(on)await audio.ctx.resume();
+  if(audio.ctx&&audio.master)audio.master.gain.setTargetAtTime(on?.65:0,audio.ctx.currentTime,.015);
   $('soundBtn').textContent=on?'SOUND ON':'SOUND OFF';
   $('soundBtn').setAttribute('aria-pressed',String(on));
   announce(on?'Sound on':'Sound off. Written descriptions remain available.');
@@ -67,7 +89,7 @@ function grain({freq=500,volume=.08,pan=0,duration=.13,q=.8,at}={}){
   if(!audio.on||!audio.ctx||audio.ctx.state!=='running')return;
   const ctx=audio.ctx,t=at??ctx.currentTime,source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
   source.buffer=audio.noise;filter.type='bandpass';filter.frequency.value=freq;filter.Q.value=q;
-  gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(volume,t+.012);
+  gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(Math.min(volume*4,.32),t+.012);
   gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
   source.connect(filter).connect(gain);
   if(ctx.createStereoPanner){const stereo=ctx.createStereoPanner();stereo.pan.value=pan;gain.connect(stereo).connect(audio.master);}
@@ -77,10 +99,11 @@ function grain({freq=500,volume=.08,pan=0,duration=.13,q=.8,at}={}){
 }
 function texture(kind,strength=.6){
   if(!audio.on)return;
+  $('audioMeter').dataset.peak='0';$('audioMeter').dataset.max='0';
   const t=audio.ctx.currentTime,n=kind==='rain'?8:kind==='heat'?5:4;
   for(let i=0;i<n;i++){
     const f=kind==='rain'?900+i*180:kind==='heat'?1200+i*340:180+i*80;
-    grain({freq:f,volume:(.035+strength*.035)*(kind==='green'?.8:1),pan:-.75+i*1.5/(n-1),duration:kind==='green'?.25:.08+strength*.07,q:kind==='heat'?1.3:.7,at:t+i*(kind==='rain'?.07:.09)});
+    grain({freq:f,volume:(.035+strength*.035)*(kind==='green'?1.6:1),pan:-.75+i*1.5/(n-1),duration:kind==='green'?.25:.08+strength*.07,q:kind==='heat'?1.3:.7,at:t+i*(kind==='rain'?.07:.09)});
   }
 }
 const imageCache=new Map();
@@ -131,6 +154,7 @@ function soundColumn(cells,x,total,band){
 }
 async function playScan(src,line,track,status,duration=5100,band=null){
   stopScan();
+  $('audioMeter').dataset.peak='0';$('audioMeter').dataset.max='0';
   const generation=scanGeneration;
   if(line){line.style.opacity='1';line.style.left='0%';}
   if(track)track.style.width='0%';
