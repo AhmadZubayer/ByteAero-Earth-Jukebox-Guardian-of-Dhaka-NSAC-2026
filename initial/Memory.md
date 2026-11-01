@@ -40,7 +40,7 @@ The user is preparing video components for a videographer. The first request pro
 ## Completed and verified
 
 - [x] `index.html` single entry point; 8 scenes (s01–s08) with independently animated Echo, Earth, isometric CSS 3D city, sliders, Sound Lab, Quick Ears, HUD, evidence lanes, charts, boarding pass, icons (inline SVG sprite) and labels.
-- [x] Local Roboto Mono 400/500/700 (`fonts/`, SIL OFL 1.1 in `fonts/OFL.txt`).
+- [x] Local Home Video Regular/Bold (`fonts/`, CC0 in `fonts/HomeVideo-LICENSE.txt`). The 500 weight uses Regular.
 - [x] Player: play/pause, restart, scrubber with bar and accent markers, scene buttons, previous/next scene, ±1 frame and ±1 s, loop scene, cut switch (240/235), captions, clean capture, background modes (space/black/green/transparent), component solo, reduced-motion preview, and per-stem volume/mute. There are also URL parameters, keyboard shortcuts, a loader with asset status, and visible errors for missing media.
 - [x] Audio built: `audio/music-master.wav` (240.000 s), `music-judging.wav` (235.000 s), `sonification.wav`, `sfx.wav`, `vo-guide-TEMP.wav`; 48 kHz/16-bit stereo, zero-aligned. Mixes are at −17.4 LUFS integrated, −1.3 dBTP (provisional target −16 LUFS; limited by peaks).
 - [x] Delivery: SRT captions (both cuts), `cue-sheet.csv`, reference mixes, `verification.json`, `sync-check.json`, plus MP4 exports `delivery/video/earth-jukebox_master_240s_1920x1080_30fps.mp4` (7,200 frames, 240.000 s video and audio) and `..._judging_235s_...mp4` (7,050 frames, 235.000 s). Both were verified with ffprobe.
@@ -76,3 +76,7 @@ The user is preparing video components for a videographer. The first request pro
 ## Next work
 
 Record VO and replace `audio/vo-guide-TEMP.wav`, retiming captions in `js/content.js` if needed and re-running `tools\build-audio.cmd`. Fill in the team, URL and QR details. Verify the challenge title and brief. Choose datasets before showing any values. Optionally master the mix to −16 LUFS.
+
+## 2026-11-01 font update
+
+The current motion-player source now loads local Home Video Regular and Bold for all text. The loader, capture check, and verification script use Home Video. Earlier MP4 exports and the older `delivery/verification.json` were made before this change and retain their original rendered lettering until exported again.

@@ -1,8 +1,8 @@
 /* Earth Jukebox — design tokens. Project palette (NASA-inspired, not an official NASA spec). */
 
-@font-face { font-family: "Roboto Mono"; src: url("../fonts/RobotoMono-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: block; }
-@font-face { font-family: "Roboto Mono"; src: url("../fonts/RobotoMono-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; font-display: block; }
-@font-face { font-family: "Roboto Mono"; src: url("../fonts/RobotoMono-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: block; }
+@font-face { font-family: "Home Video"; src: url("../fonts/HomeVideo-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; font-display: block; }
+@font-face { font-family: "Home Video"; src: url("../fonts/HomeVideo-Regular.ttf") format("truetype"); font-weight: 500; font-style: normal; font-display: block; }
+@font-face { font-family: "Home Video"; src: url("../fonts/HomeVideo-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: block; }
 
 :root {
   /* palette */
@@ -30,7 +30,7 @@
   --fs-label: 30px;
   --fs-small: 26px;
   --fs-note: 24px;
-  --font: "Roboto Mono", ui-monospace, monospace;
+  --font: "Home Video", monospace;
 
   /* safe area (critical content) */
   --safe-x: 96px;

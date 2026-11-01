@@ -46,7 +46,7 @@ Gate: every factual on-screen claim has a source or an explicit illustrative/pla
 
 ## Milestone 2 visual system and image preparation
 
-- [x] Implement the palette, type scale, safe areas, 16:9 stage, and local Roboto Mono.
+- [x] Implement the palette, type scale, safe areas, 16:9 stage, and local Home Video font.
 - [x] Build Echo, isometric city tiles, interventions, HUD, Sound Lab, timeline, evidence card, and boarding pass as independently addressable parts.
 - [x] Use downloaded imagery according to image/SOURCES.md. Store any additional images or derivatives inside image/. (no new image files were needed; crops are CSS)
 - [x] Turn reference UI into actual labels, sliders, controls, and shapes; do not animate a flattened screenshot as the scene.

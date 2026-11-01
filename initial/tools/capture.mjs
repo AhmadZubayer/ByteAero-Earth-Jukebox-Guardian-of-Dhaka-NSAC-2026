@@ -103,7 +103,7 @@ const url = pathToFileURL(path.join(ROOT, "index.html")).href + "?" + q;
 await send("Page.navigate", { url });
 for (let i = 0; i < 200; i++) { if (await evaluate("!!(window.EJ && window.EJ.ready)").catch(() => false)) break; await new Promise((r) => setTimeout(r, 100)); }
 if (args.alpha) await send("Emulation.setDefaultBackgroundColorOverride", { color: { r: 0, g: 0, b: 0, a: 0 } });
-const fontsOK = await evaluate("document.fonts.check(\"700 40px 'Roboto Mono'\") && document.fonts.check(\"400 40px 'Roboto Mono'\") && document.fonts.check(\"500 40px 'Roboto Mono'\")");
+const fontsOK = await evaluate("document.fonts.check(\"700 40px 'Home Video'\") && document.fonts.check(\"400 40px 'Home Video'\") && document.fonts.check(\"500 40px 'Home Video'\")");
 
 const t0 = Date.now();
 for (let i = 0; i < frames.length; i++) {

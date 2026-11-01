@@ -81,7 +81,9 @@ async function setSound(on){
   audio.on=on;
   if(on)await audio.ctx.resume();
   if(audio.ctx&&audio.master)audio.master.gain.setTargetAtTime(on?.65:0,audio.ctx.currentTime,.015);
-  $('soundBtn').textContent=on?'SOUND ON':'SOUND OFF';
+  $('soundBtn').dataset.sound=on?'on':'off';
+  $('soundBtn').setAttribute('aria-label',on?'Turn sound off':'Turn sound on');
+  $('soundBtn').title=on?'Turn sound off':'Turn sound on';
   $('soundBtn').setAttribute('aria-pressed',String(on));
   announce(on?'Sound on':'Sound off. Written descriptions remain available.');
 }

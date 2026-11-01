@@ -1,6 +1,6 @@
 # Earth Jukebox: Guardian of Dhaka
 
-An interactive, browser-based Earth sound story for the NASA Space Apps Challenge 2026. Open `dist/index.html` in a local web server, or visit the published Site. The [player journey](plan.md) explains every page and round in plain language.
+An interactive, browser-based Earth sound story for the NASA Space Apps Challenge 2026. Open `dist/index.html` in a local web server, or visit the published Site. The in-game **Guide** button opens `dist/guide.html`, a visual guide to the opening, all six rounds, the Earth record, and the ticket. The [player journey](plan.md) is the longer written plan.
 
 ## Journey
 

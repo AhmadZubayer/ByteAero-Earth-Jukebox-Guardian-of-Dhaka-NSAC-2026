@@ -34,7 +34,7 @@ initial/
     SOURCES.md                # provenance and shot usage
     *.jpg                     # downloaded NASA imagery
     reference-judging.png      # reference only
-  fonts/                      # local Roboto Mono and license
+  fonts/                      # local Home Video and license
   audio/                      # licensed score, VO, SFX, sonification
   delivery/                   # future cue sheet, captions, captures
 ```

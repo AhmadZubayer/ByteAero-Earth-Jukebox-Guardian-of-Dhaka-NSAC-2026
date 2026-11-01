@@ -53,7 +53,7 @@
 .rule { position: absolute; height: 2px; background: linear-gradient(90deg, var(--cyan), transparent); transform-origin: left; }
 .hair { position: absolute; background: rgba(88, 217, 249, .35); }
 
-/* arrow drawn in CSS (Roboto Mono has no arrow glyphs) */
+/* Arrow drawn in CSS for consistent rendering across fonts. */
 .arrow { position: absolute; height: 4px; background: currentColor; border-radius: 2px; transform-origin: left center; }
 .arrow::after { content: ""; position: absolute; right: -4px; top: 50%; width: 16px; height: 16px; border-top: 4px solid currentColor; border-right: 4px solid currentColor; transform: translateY(-50%) rotate(45deg); }
 

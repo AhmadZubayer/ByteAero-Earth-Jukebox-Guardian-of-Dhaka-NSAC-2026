@@ -393,7 +393,7 @@
     li.querySelector("b").textContent = ok === true ? "ready" : ok === false ? "MISSING" : "…";
   }
   function preload() {
-    var fonts = Promise.all(["400", "500", "700"].map(function (w) { return document.fonts.load(w + " 40px 'Roboto Mono'"); }))
+    var fonts = Promise.all(["400", "500", "700"].map(function (w) { return document.fonts.load(w + " 40px 'Home Video'"); }))
       .then(function (r) { var ok = r.every(function (x) { return x.length > 0; }); loaderItem("fonts", ok); return ok; });
     var imgs = Promise.all(Array.prototype.map.call(document.querySelectorAll(".stage img"), function (im) {
       return (im.decode ? im.decode() : Promise.resolve()).then(function () { return true; }, function () { return false; });
