@@ -1,26 +1,37 @@
 # Earth Jukebox: Guardian of Dhaka
 
-A static, browser-based NASA Space Apps Challenge 2026 game concept.
+An interactive, browser-based Earth sound story for the NASA Space Apps Challenge 2026. Open `dist/index.html` in a local web server, or visit the published Site. The [player journey](plan.md) explains every page and round in plain language.
 
-## How it works
+## Journey
 
-- The frame jukebox displays two local NASA Scientific Visualization Studio frames that are used by the Earth Information Center global temperature view. In the browser, a canvas samples pixels every seven pixels and classifies warm and cool color areas. A left-to-right scan plays separate original bell and soft-string voices. Vertical image position sets pitch, pixel brightness sets loudness, and horizontal position sets stereo pan. This is a visual art mapping, not a temperature estimate.
-- The Sound Lab uses sliders to teach heat, rain, and greenery sound rules. These slider values are illustrative.
-- Quick Ears uses five sounds, with three correct answers required before the Dhaka game unlocks.
-- The 2000, 2010, 2020, and 2024 Dhaka rounds each display a locally bundled, unaltered NASA GIBS rendering of the Terra MODIS eight-day daytime land surface temperature layer (MOD11A2). The WMS requests use April 15 of each year, a bounding box of 89.95–90.85° E and 23.50–24.15° N, and the same 1000 × 800 image size. These are surface-temperature snapshots, not air-temperature readings or a climate trend. Missing observations may appear gray.
-- The 2035 and 2050 rounds display the observed 2024 image as historical context, clearly labeled as such. The six district buttons, warmer game signals, costs, intervention effects, scores, and future story paths remain illustrative. They do not claim to represent measured neighborhood conditions, intervention efficacy, or NASA projections. MODIS/VIIRS active-fire hotspots were not used, since those detections do not measure ordinary urban heat.
-- Browser Web Audio creates sound when the player turns it on. Every signal also has text. The experience works without sound, supports keyboard controls and reduced-motion settings, and prints a boarding pass.
+The player meets Echo, scans two real NASA Earth Information Center global temperature frames, practices three sound textures, and follows six Dhaka story years. The 2000, 2010, 2020, and 2024 rounds use local NASA Terra MODIS daytime land surface temperature images. The 2035 and 2050 scenes are explicitly imagined; they display the real 2024 map only as a dated reference. The player finishes with a six-image sound record and a personalized printable ticket.
+
+Each year has a different interaction: listen within an image, compare two dated images, ask about an imagined walk to school, choose a people-focused action, choose a future path, and send back a lesson. There is no timed district clicker.
+
+## How the sound works
+
+Sound is generated in the browser during each image scan. A canvas samples the locally bundled image. A left-to-right playhead triggers short noise grains. Image position sets stereo position and each grain's frequency band; brightness sets level. Warm and cool color features use separate bands. This makes a changing, non-melodic texture linked to the displayed pixels. The Sound Lab and Quick Ears use clearly marked practice textures.
+
+This is an original sonification **inspired by NASA's spatial sweep and layered mappings**, not an official NASA recording or a temperature measurement. The MODIS images supplied here are rendered color views, not numeric raster values. Their sound conveys image structure; it does not encode degrees Celsius. The real-image and imagined-story labels remain visible throughout.
+
+Sound needs a user click to start. All sound cues have written descriptions. The game supports keyboard controls and reduced-motion settings; the ticket can be printed.
+
+## Science notes
+
+- The global frames show temperature anomaly relative to a 1951–1980 average. They are not Dhaka air temperature.
+- The Dhaka images are eight-day **land surface** temperature views requested for April 15 in the four observed years. They are not street-level air-temperature readings, and four snapshots alone do not prove a climate trend.
+- Future stories, illustrated people and streets, choices, and outcomes are fictional. A cooling center is shown as a place that helps people during heat, not as something that cools a whole city.
+- MODIS/VIIRS active-fire hotspots are not used as ordinary urban-heat readings.
 
 ## Sources
 
-- Challenge: https://www.spaceappschallenge.org/2026/challenges/the-earth-information-jukebox/
-- EIC global temperature visualization: https://earth.gov/sealevel/global-temperature-overlay/
-- NASA SVS visualization 5060 and image credits: https://svs.gsfc.nasa.gov/5060/
-- Home Video font by GGBotNet, CC0: https://ggbot.itch.io/home-video-font/
-- NASA sonification examples and method inspiration: https://www.nasa.gov/universe/data-sonification-a-new-cosmic-triad-of-sound/
-- NASA GIBS MODIS land surface temperature layer metadata: https://gibs.earthdata.nasa.gov/layer-metadata/v1.0/MODIS_Terra_L3_Land_Surface_Temp_8Day_Day.json
-- NASA MODIS land surface temperature products: https://modis.gsfc.nasa.gov/data/dataprod/mod11.php
-- NASA FIRMS active-fire definition (why this was not used for the urban heat map): https://firms.modaps.eosdis.nasa.gov/
-- Local Earth imagery from the existing project image library. See `../../image/SOURCES.md`.
+- [The Earth Information Jukebox challenge](https://www.spaceappschallenge.org/2026/challenges/the-earth-information-jukebox/)
+- [Earth Information Center global temperature view](https://earth.gov/sealevel/global-temperature-overlay/)
+- [NASA SVS global temperature visualization 5060](https://svs.gsfc.nasa.gov/5060/)
+- [NASA sonification examples and method](https://www.nasa.gov/universe/data-sonification-a-new-cosmic-triad-of-sound/)
+- [NASA GIBS MODIS land surface temperature layer](https://gibs.earthdata.nasa.gov/layer-metadata/v1.0/MODIS_Terra_L3_Land_Surface_Temp_8Day_Day.json)
+- [NASA MODIS land surface temperature products](https://modis.gsfc.nasa.gov/data/dataprod/mod11.php)
+- [NASA FIRMS active-fire definition](https://firms.modaps.eosdis.nasa.gov/)
+- [Home Video font by GGBotNet, CC0](https://ggbot.itch.io/home-video-font/)
 
-The Home Video font currently loads from GGBotNet's public GitHub repository via jsDelivr. The NASA visualization frames, four Dhaka surface-temperature maps, and Earth image are bundled locally in `dist/assets/`.
+The Home Video font loads from GGBotNet's public GitHub repository through jsDelivr. All NASA images used in the experience are bundled in `dist/assets/`. This is an independent Space Apps project, not an official NASA product.
