@@ -8,6 +8,7 @@ import { loadModel } from './assets.js';
 import { Player } from '../player/character.js';
 import { FollowCamera } from '../player/camera.js';
 import { Echo } from '../player/echo.js';
+import { audio } from '../audio/engine.js';
 
 export class Runtime {
   constructor(settings) {
@@ -69,6 +70,7 @@ export class Runtime {
         this.follow.update(dt, this.player.pos, look, this.player.facing, false);
       }
       this.echo.update(dt, this.player, this.settings.reducedMotion);
+      if (audio.ready) audio.setListener(this.player.pos.x, this.player.pos.y + 1.3, this.player.pos.z, -Math.sin(this.follow.yaw), -Math.cos(this.follow.yaw));
       this.stage.followShadow(this.player.pos.x, this.player.pos.z);
     }
     this.scene?.update?.(dt, this);

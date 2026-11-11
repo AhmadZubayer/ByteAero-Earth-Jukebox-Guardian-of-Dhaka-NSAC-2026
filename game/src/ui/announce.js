@@ -54,3 +54,9 @@ export function directionWords(rel, dist) {
   const far = dist < 6 ? 'right here' : `about ${m} metres away`;
   return dist < 6 ? 'right here' : `${w}, ${far}`;
 }
+
+// Angle of a point relative to where the camera looks (0 ahead, + right). yaw = FollowCamera.yaw.
+export function relAngle(yaw, dx, dz) {
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
+  return Math.atan2(dx * rx + dz * rz, dx * fx + dz * fz);
+}

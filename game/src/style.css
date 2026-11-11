@@ -79,7 +79,7 @@ body.text-only .panel { max-height: none; margin: 16px 0; }
 .toggle small { display: block; color: var(--ink-2); }
 .field { display: grid; gap: 6px; margin: 12px 0; }
 .field input[type='text'] { font: inherit; padding: 12px; border: 3px solid var(--ink); border-radius: 12px; min-height: 48px; }
-.slider { display: grid; grid-template-columns: 110px 1fr 70px; gap: 12px; align-items: center; margin: 10px 0; }
+.slider { display: grid; grid-template-columns: 90px 1fr 120px; gap: 12px; align-items: center; margin: 10px 0; }
 .slider input { width: 100%; accent-color: var(--teal); min-height: 32px; }
 .slider output { font-weight: 700; text-align: right; }
 
@@ -192,3 +192,4 @@ body.reduced-motion *, body.reduced-motion *::before { animation: none !importan
   #ui { position: static; display: block; padding: 0; }
   .panel { box-shadow: none; border: none; max-height: none; width: 100%; }
 }
+body.has-panel #captions { top: max(12px, env(safe-area-inset-top)); bottom: auto; }

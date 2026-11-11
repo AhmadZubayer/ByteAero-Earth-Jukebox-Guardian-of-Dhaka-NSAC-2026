@@ -23,6 +23,7 @@ const ui = () => document.getElementById('ui');
 export function show(...nodes) {
   const root = ui();
   root.replaceChildren(...nodes);
+  document.body.classList.toggle('has-panel', !!root.querySelector('.panel'));
   const target = root.querySelector('[data-autofocus]') || root.querySelector('h1, h2');
   if (target) {
     if (!target.hasAttribute('tabindex') && /^H\d$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
@@ -31,7 +32,7 @@ export function show(...nodes) {
   return root;
 }
 
-export function clear() { ui().replaceChildren(); }
+export function clear() { ui().replaceChildren(); document.body.classList.remove('has-panel'); }
 
 export function button(label, onClick, cls = '', attrs = {}) {
   return h('button', { type: 'button', class: `btn ${cls}`.trim(), onclick: onClick, ...attrs }, label);
