@@ -5,6 +5,9 @@ import { Runtime } from '../core/runtime.js';
 import { TestStreet } from '../world/teststreet.js';
 import { audio } from '../audio/engine.js';
 import { soundLab, quickEars, beaconHunt } from './practice.js';
+import { loadData } from '../data/nasa.js';
+import { Round } from './round.js';
+import { ROUNDS } from './rounds.js';
 
 const params = new URLSearchParams(location.search);
 let rt = null;
@@ -48,11 +51,26 @@ async function practice(settings) {
   show(h('section', { class: 'panel' }, h('h2', {}, `You found it by ear in ${Math.round(secs)} seconds!`), h('p', {}, 'Next: Dhaka. (Built in Phase 3.)')));
 }
 
+async function devRound(settings, year) {
+  const data = await loadData();
+  const r = await ensureRuntime(settings);
+  const def = ROUNDS.find((x) => x.year === year) || ROUNDS[0];
+  const round = new Round(def, data, {}, settings);
+  await round.load();
+  r.setScene(round);
+  window.__round = round;
+  window.__ready = true;
+  const out = await round.play();
+  window.__roundResult = out;
+  show(h('section', { class: 'panel' }, h('h2', {}, `${def.year}: ${out.result.pct}% protected`)));
+}
+
 export async function runGame(settings) {
   audio.setEnabled(settings.sound);
   audio.setVolume(settings.volume);
   if (params.get('scene') === 'street') return testStreet(settings);
   if (params.get('scene') === 'practice') return practice(settings);
+  if (params.get('scene') === 'round') return devRound(settings, +params.get('year') || 2000);
   show(h('section', { class: 'panel title-panel' },
     h('p', { class: 'kicker' }, 'NASA Space Apps 2026 · The Earth Information Jukebox'),
     h('h1', {}, 'Earth Jukebox: Guardian of Dhaka'),
