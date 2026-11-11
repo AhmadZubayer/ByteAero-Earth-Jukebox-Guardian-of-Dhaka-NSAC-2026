@@ -205,7 +205,7 @@ export class Round {
     const after = this.forecast.districts[placed.district];
     this.chime(after.safe && !before.safe);
     const status = after.cooled ? 'This block is now safe from the wave' : after.sheltered ? 'People here can shelter, but the block is still hot' : `This block still needs about ${(after.excess - DANGER).toFixed(1)} more degrees of cooling`;
-    say(`${f.label} placed in ${d.name}. ${status} (game estimate). ${this.coins} coins left.`);
+    say(`${f.label} placed in ${d.name}. ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
     this.hud();
   }
 
