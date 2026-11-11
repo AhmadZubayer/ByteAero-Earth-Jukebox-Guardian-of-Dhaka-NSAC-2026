@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Earth Jukebox: Guardian of Dhaka</title>
+  <meta name="description" content="A 3D listening game about heat in Dhaka, made with NASA Earth data by Team BYTEAERO for NASA Space Apps 2026.">
+  <meta name="theme-color" content="#1d2433">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%232f8fd8'/%3E%3Cpath d='M14 30c8-10 28-12 36 2-6 10-26 14-36-2z' fill='%233e9b4f'/%3E%3Ccircle cx='46' cy='18' r='6' fill='%23f2a93b'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#ui">Skip to game menu</a>
+  <div id="stage" aria-hidden="true"></div>
+  <div id="vignette-heat" aria-hidden="true"></div>
+
+  <!-- All menus, dialogue and reports render here as real HTML. -->
+  <main id="ui" tabindex="-1" aria-label="Earth Jukebox"></main>
+
+  <!-- Heads-up display during a round. -->
+  <section id="hud" aria-label="Round status" hidden>
+    <div class="hud-top">
+      <div class="hud-chip" id="hud-year"></div>
+      <div class="hud-chip" id="hud-phase" aria-live="off"></div>
+      <div class="hud-chip hud-timer" id="hud-timer" role="timer" aria-label="Time left"></div>
+      <div class="hud-chip" id="hud-coins"></div>
+      <div class="hud-chip" id="hud-protect"></div>
+      <button class="hud-btn" id="hud-menu" type="button" aria-label="Pause and open menu">Menu</button>
+    </div>
+    <div class="hud-compass" id="hud-compass" aria-hidden="true"><span></span></div>
+    <div class="hud-district" id="hud-district"></div>
+    <div class="hud-fixes" role="toolbar" aria-label="Choose a fix" id="hud-fixes"></div>
+    <div class="hud-keys" id="hud-keys" aria-hidden="true">WASD move · Shift run · Q scan · R where? · E place · 1–4 choose fix · F bring the wave · H heat view</div>
+  </section>
+
+  <!-- Phone controls. -->
+  <div id="touch" hidden aria-hidden="true">
+    <div class="joy" data-joystick></div>
+    <div class="touch-buttons">
+      <button type="button" data-action="scan" class="tb tb-scan">Scan</button>
+      <button type="button" data-action="where" class="tb">Where?</button>
+      <button type="button" data-action="act" class="tb tb-act">Place</button>
+      <button type="button" data-action="jump" class="tb">Jump</button>
+    </div>
+  </div>
+
+  <!-- Visible captions for every sound cue, and screen-reader live regions. -->
+  <div id="captions" aria-hidden="true"></div>
+  <div id="live-polite" class="sr-only" aria-live="polite" aria-atomic="false"></div>
+  <div id="live-assert" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <noscript>
+    <p class="noscript">This game needs JavaScript. A simpler version: <a href="classic/index.html">Earth Jukebox 2D</a>.</p>
+  </noscript>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
