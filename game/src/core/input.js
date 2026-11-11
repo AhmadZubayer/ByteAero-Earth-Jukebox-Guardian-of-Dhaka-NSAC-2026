@@ -51,7 +51,7 @@ export class Input {
       const v = data?.vector, force = data?.force ?? 0;
       if (!v) return;
       this.move.x = v.x; this.move.y = v.y;
-      this.touchRun = force > 1.1;
+      this.touchRun = force > 0.85; // push the stick near its edge to run
     });
     this.joystick.on('end', () => { this.move.x = 0; this.move.y = 0; this.touchRun = false; });
     root.querySelectorAll('[data-action]').forEach((b) => {

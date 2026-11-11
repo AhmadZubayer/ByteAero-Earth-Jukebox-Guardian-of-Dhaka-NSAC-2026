@@ -12,12 +12,13 @@ export class Hud {
     bar.replaceChildren();
     for (const f of FIX_LIST) {
       const b = h('button', { type: 'button', class: 'fix-btn', 'aria-pressed': 'false', 'data-fix': f.key, title: `${f.label}: ${f.what}. Costs ${f.cost}. Key ${f.hotkey}.` },
-        `${f.hotkey} ${f.label}`, h('small', {}, `${f.cost} coin${f.cost > 1 ? 's' : ''}`));
+        h('span', { class: 'fix-long' }, `${f.hotkey} ${f.label}`), h('span', { class: 'fix-short', 'aria-hidden': 'true' }, f.key === 'centre' ? 'Centre' : f.key === 'roof' ? 'Roof' : f.label), h('small', {}, `${f.cost} coin${f.cost > 1 ? 's' : ''}`));
       b.addEventListener('click', () => this.onPick?.(f.key));
       bar.append(b);
       this.fixButtons[f.key] = b;
     }
     $('hud-menu').onclick = () => this.onMenu?.();
+    $('hud-wave').onclick = () => this.onWave?.();
   }
 
   show(v) { this.root.hidden = !v; }

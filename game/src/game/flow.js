@@ -7,7 +7,7 @@ import { loadData } from '../data/nasa.js';
 import { loadProgress, saveProgress, clearProgress } from '../core/save.js';
 import { settingsPanel } from '../ui/settings.js';
 import { reportScreen, choiceScreen } from '../ui/report.js';
-import { legendButtons } from './practice.js';
+import { legendButtons, soundLab, quickEars, beaconHunt } from './practice.js';
 import { ROUNDS } from './rounds.js';
 import { N, starsFor, LOSE_BELOW } from './heat.js';
 
@@ -81,6 +81,9 @@ function titleScreen() {
       h('div', { class: 'row', style: 'justify-content:center' },
         button(canContinue ? 'New game' : 'Start', () => resolve({ mode: 'new' }), '', { 'data-autofocus': true }),
         canContinue ? button(`Continue (${saved.roundIndex < ROUNDS.length ? ROUNDS[saved.roundIndex].year : 'Earth Record'})`, () => resolve({ mode: 'continue', state: saved }), 'secondary') : null),
+      h('details', { class: 'note', style: 'text-align:left' }, h('summary', {}, 'How to play'),
+        h('p', {}, 'Each year a heat wave is coming to Dhaka. Listen: a rising sitar line comes from the hottest blocks, louder, higher and faster as you get close. Walk there and spend coins on trees, white roofs, ponds and cooling centres before the wave hits.'),
+        h('p', {}, 'Keyboard: W A S D or arrows to move, Shift to run, Q for Echo\'s sound scan, R for directions in words, 1 to 4 to choose a fix, E to place it, F to bring the wave, Esc for the menu. Phone: joystick on the left, buttons on the right, fixes along the bottom.')),
       h('details', { class: 'note', style: 'text-align:left' }, h('summary', {}, 'Settings and accessibility'), settingsPanel(settings, (k) => { if (k === 'textOnly') location.reload(); })),
       h('p', { class: 'note', style: 'text-align:left' }, 'Best with headphones: sounds come from where they are in the city. Every sound also has a written description. ',
         h('a', { href: 'classic/index.html' }, 'Play the simpler 2D version'), '.'),
@@ -177,7 +180,6 @@ async function ending(state) {
 async function practice(state) {
   if (settings.textOnly) return;
   const { TestStreet } = await import('../world/teststreet.js');
-  const { soundLab, quickEars, beaconHunt } = await import('./practice.js');
   const street = new TestStreet();
   await street.load();
   rt.setScene(street);

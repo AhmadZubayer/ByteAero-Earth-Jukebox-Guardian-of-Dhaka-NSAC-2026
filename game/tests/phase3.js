@@ -8,10 +8,11 @@ for (const year of [2000, 2024]) {
   const page = await ctx.newPage();
   const errors = collectErrors(page);
   await page.goto(`${base}?scene=round&year=${year}`);
-  await page.waitForFunction('window.__ready === true', null, { timeout: 90000 });
+  await page.waitForFunction('window.__round && window.__round.phase === "intro"', null, { timeout: 90000 });
+  await page.waitForTimeout(400);
   // Click through Echo's intro lines.
   for (let k = 0; k < 8; k++) {
-    const next = page.getByRole('button', { name: 'Next' });
+    const next = page.locator('.dialogue button').first();
     if (await next.count() === 0) break;
     await next.click(); await page.waitForTimeout(250);
   }

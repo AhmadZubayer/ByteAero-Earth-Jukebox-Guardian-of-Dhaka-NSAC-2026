@@ -1,6 +1,6 @@
 # Earth Jukebox: Guardian of Dhaka — 3D implementation plan
 
-Status: plan only. Nothing in this document is built yet.
+Status: first full version built in `game/` (all six phases). Differences from this plan are listed in section 15.
 Branch: `claude/3d-game`. The working 2D game on `main` (`initial/`) stays untouched until the 3D version is ready.
 
 ## 1. Goal
@@ -228,3 +228,20 @@ GitHub Pages from a GitHub Actions workflow: `bun install`, `bun run build`, pub
 Required: approve the network request for asset hosts; enable GitHub Pages once; give feedback after the first version.
 
 Optional, after the first version: preferred character look, a rickshaw model, Mixamo animations, a team logo.
+
+## 15. Changes made while building
+
+- **Physics:** Rapier was replaced by a small circle-vs-box collision module (`game/src/core/collision.js`).
+  Rapier's WebAssembly build is 1.65 MB gzipped on its own, above the 1.5 MB library budget, and the
+  city only needs a character sliding along boxes.
+- **Assets:** Kenney's site refuses automated downloads and the Quaternius Google Drive folder was over
+  quota, so buildings come from KayKit City Builder Bits (the planned fallback) and characters, trees and
+  props from Quaternius uploads on Poly Pizza. All CC0. See `docs/CREDITS.md`.
+- **Data:** the LST and NDVI images are decoded back to numbers with the official GIBS colour maps
+  (`game/scripts/build-data.js`), so the sound uses degrees Celsius and NDVI values, not image colour.
+  In these images April 2020 has the hottest ground of the four years while NASA POWER has its April
+  air as the coolest; the 2020 round uses this for its "surface is not air" lesson. 2024 has the
+  hottest April air maximum.
+- **Balance:** wave strength comes from NASA POWER April maximum air temperature plus a per-round game
+  adjustment; coins were tuned by simulation (`game/tests/tune.js`) so that doing nothing loses every
+  round and good play reaches two or three stars.

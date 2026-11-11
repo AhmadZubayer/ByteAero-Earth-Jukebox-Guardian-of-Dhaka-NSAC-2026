@@ -5,7 +5,7 @@ import { City, loadCity, districtCentre, districtAt, HALF, cityModels } from '..
 import { resolve, FIXES, pickSpots, DANGER, N } from './heat.js';
 import { cellsFor, waveFor, layoutDistrict, plotFree } from './rounds.js';
 import { audio } from '../audio/engine.js';
-import { Conductor, playScan, MAP } from '../audio/sonify.js';
+import { Conductor, playScan, MAP, describeMusic } from '../audio/sonify.js';
 import { sitar, tabla } from '../audio/instruments.js';
 import { Hud } from '../ui/hud.js';
 import { say, directionWords, relAngle, vibrate } from '../ui/announce.js';
@@ -102,9 +102,9 @@ export class Round {
     const rt = this.rt;
     this.h = new Hud();
     this.h.onPick = (k) => this.pick(k);
-    this.h.onMenu = () => this.onMenu?.();
+    this.h.onMenu = () => this.rt.input.fire('menu');
+    this.h.onWave = () => this.finish();
     this.h.select(this.selected);
-    this.h.show(true);
     this.hud();
     await audio.unlock();
     this.cond = new Conductor(audio);
@@ -116,6 +116,7 @@ export class Round {
       this.cond.setFluteSource(gc.x, gc.z);
     }
     await this.intro();
+    this.h.show(true);
     // Heat calls from each hot spot.
     if (this.settings.sound) {
       this.spots.forEach((s, k) => {
@@ -127,6 +128,8 @@ export class Round {
     }
     if (!this.def.hidden && this.settings.heatView) for (const s of this.spots) this.city.effects.shimmer(new THREE.Vector3(districtCentre(s).x, 0.5, districtCentre(s).z), 1);
     say(this.def.spots > 1 ? `Listen: ${this.def.spots} rising sitar lines. Each one comes from a hot spot.` : 'Listen: a rising sitar line. It comes from the hot spot.');
+    const meanLst = this.cells.reduce((s, c) => s + (c.lst ?? 30), 0) / N;
+    say(`Music for ${this.def.year}: ${describeMusic({ heatC: meanLst, tension: this.tension, rain: this.rainFor(), ndvi: this.cells.reduce((s, c) => s + (c.ndvi ?? 0), 0) / N, year: this.def.year })}`);
     this.where(true);
     this.phase = 'play';
     this.bindInput();
@@ -204,7 +207,7 @@ export class Round {
     this.refresh();
     const after = this.forecast.districts[placed.district];
     this.chime(after.safe && !before.safe);
-    const status = after.cooled ? 'This block is now safe from the wave' : after.sheltered ? 'People here can shelter, but the block is still hot' : `This block still needs about ${(after.excess - DANGER).toFixed(1)} more degrees of cooling`;
+    const status = after.cooled ? 'This block is now safe from the wave' : after.sheltered ? 'People here can shelter, but the block is still hot' : `This block still needs about ${Math.max(0.1, after.excess - DANGER).toFixed(1)} more degrees of cooling`;
     say(`${f.label} placed in ${d.name}. ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
     this.hud();
   }
@@ -300,7 +303,7 @@ export class Round {
         const c = this.cells[di], f = this.forecast.districts[di], d = this.city.districts[di];
         const src = this.def.real ? `NASA MODIS, April ${this.def.year}` : 'imagined from 2024';
         const showHeat = !(this.def.hidden && this.spots.includes(di) && !this.found.has(di));
-        const status = !showHeat ? '' : f.safe ? ' · safe from the wave' : ` · needs cooling (about ${(f.excess - DANGER).toFixed(1)} °C, game estimate)`;
+        const status = !showHeat ? '' : f.safe ? ' · safe from the wave' : ` · needs cooling (about ${Math.max(0.1, f.excess - DANGER).toFixed(1)} °C, game estimate)`;
         const text = `${d.name}: ground ${c.lst?.toFixed(1) ?? 'no data'} °C, green ${c.ndvi?.toFixed(2) ?? 'no data'} (${src})${status}`;
         this.h.district(text);
         say(text, { caption: false });

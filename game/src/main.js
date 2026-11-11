@@ -1,5 +1,5 @@
 // Boot: settings, WebGL check, loading screen, then the game flow.
-import { hasWebGL } from './core/renderer.js';
+import { hasWebGL } from './core/webgl.js';
 import { loadSettings } from './core/save.js';
 import { h, show, button } from './ui/dom.js';
 import { setVibration } from './ui/announce.js';
@@ -24,6 +24,7 @@ function fallback() {
 async function start(textOnly = false) {
   if (textOnly) settings.textOnly = true;
   document.body.classList.toggle('text-only', settings.textOnly);
+  document.documentElement.classList.toggle('text-only', settings.textOnly);
   const { runGame } = await import('./game/flow.js');
   runGame(settings);
 }

@@ -206,3 +206,35 @@ body.has-panel #captions { top: max(12px, env(safe-area-inset-top)); bottom: aut
   .data-table th, .data-table td { padding: 5px 4px; }
   .data-table .stars { font-size: 15px; letter-spacing: 0; }
 }
+
+/* Stacking: canvas, HUD, touch controls, then menus and dialogue on top, captions above all. */
+#stage { z-index: 0; }
+#hud { z-index: 2; }
+#touch { z-index: 3; }
+#ui { z-index: 5; }
+#captions { z-index: 6; }
+.skip-link { z-index: 10; }
+
+/* Phone layout for rounds: fix bar along the bottom, joystick and buttons above it. */
+@media (max-width: 640px) {
+  .hud-top { gap: 6px; }
+  #hud-phase { display: none; }
+  .hud-btn { min-height: 40px; padding: 6px 10px; font-size: 14px; }
+  .hud-compass { top: auto; bottom: 252px; left: auto; right: 16px; transform: none; width: 48px; height: 48px; }
+  .hud-compass span { top: 3px; margin-left: -7px; border-width: 7px; border-bottom-width: 17px; transform-origin: 7px 20px; }
+  .hud-district { top: 96px; font-size: 13px; padding: 4px 10px; max-width: calc(100% - 24px); }
+  .hud-fixes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; left: 8px; right: 8px; bottom: max(8px, env(safe-area-inset-bottom)); }
+  .fix-btn { min-width: 0; min-height: 52px; font-size: 12px; padding: 4px; }
+  .joy { left: 10px; bottom: 76px; width: 130px; height: 130px; }
+  .touch-buttons { right: 8px; bottom: 76px; grid-template-columns: repeat(2, 64px); gap: 8px; }
+  .tb { width: 64px; height: 54px; font-size: 14px; }
+  #captions { bottom: auto; top: 140px; }
+}
+.fix-short { display: none; }
+@media (max-width: 640px) { .fix-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .fix-short { display: block; } .fix-btn { position: relative; } }
+
+.hud-wave { margin-left: auto; background: #ffd0c4; }
+.hud-wave + .hud-btn { margin-left: 0; }
+@media (max-width: 640px) { .hud-wave { font-size: 13px; } }
+html.text-only, html.text-only body { overflow: auto; height: auto; }
+.field select, .panel select { font: inherit; min-height: 44px; padding: 8px 10px; border: 3px solid var(--ink); border-radius: 12px; background: #fff; color: var(--ink); max-width: 100%; }

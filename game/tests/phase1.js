@@ -22,7 +22,7 @@ for (const [name, vp, mobile] of [['desktop', { width: 1280, height: 720 }, fals
   const end = await page.evaluate(() => window.__rt.player.pos.toArray());
   const fps = await page.evaluate(() => window.__fps);
   await page.screenshot({ path: `screenshots/phase1-${name}.png` });
-  console.log(name, 'start', start.map((v) => v.toFixed(1)), 'end', end.map((v) => v.toFixed(1)), 'fps(headless, software GL)', fps, 'errors', errors);
+  console.log(name, 'start', start.map((v) => v.toFixed(1)), 'end', end.map((v) => v.toFixed(1)), 'fps', fps, 'errors', errors);
   await ctx.close();
 }
 await browser.close();

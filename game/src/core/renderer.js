@@ -2,13 +2,6 @@
 import * as THREE from 'three';
 import { EffectComposer, RenderPass, EffectPass, BloomEffect, VignetteEffect, ToneMappingEffect, ToneMappingMode, HueSaturationEffect, BrightnessContrastEffect } from 'postprocessing';
 
-export function hasWebGL() {
-  try {
-    const c = document.createElement('canvas');
-    return !!(window.WebGL2RenderingContext && c.getContext('webgl2')) || !!c.getContext('webgl');
-  } catch { return false; }
-}
-
 export class Stage {
   constructor(container, { quality = 'high' } = {}) {
     this.container = container;

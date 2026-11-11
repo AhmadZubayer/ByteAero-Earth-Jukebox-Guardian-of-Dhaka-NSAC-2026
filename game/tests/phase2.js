@@ -26,20 +26,24 @@ await page.getByRole('button', { name: 'Start listening' }).click();
 await page.waitForTimeout(500);
 
 // Measure: average L/R energy over a few seconds with the player at a fixed spot facing down the street.
-const measure = async (x, z, secs = 5) => page.evaluate(async ([x, z, secs]) => {
-  const rt = window.__rt; rt.player.pos.set(x, 0, z); rt.follow.yaw = 0; // camera behind, looking toward -Z
+const measure = async (x, z, secs = 5, yaw = 0) => page.evaluate(async ([x, z, secs, yaw]) => {
+  const rt = window.__rt; rt.player.pos.set(x, 0, z); rt.follow.yaw = yaw; // yaw 0: looking toward -Z
   let l = 0, r = 0, n = 0;
   const end = performance.now() + secs * 1000;
-  while (performance.now() < end) { await new Promise((res) => setTimeout(res, 50)); rt.player.pos.set(x, 0, z); const v = window.__audio.levels(); l += v.l * v.l; r += v.r * v.r; n++; }
+  while (performance.now() < end) { await new Promise((res) => setTimeout(res, 50)); rt.player.pos.set(x, 0, z); rt.follow.yaw = yaw; const v = window.__audio.levels(); l += v.l * v.l; r += v.r * v.r; n++; }
   return { l: Math.sqrt(l / n), r: Math.sqrt(r / n) };
-}, [x, z, secs]);
+}, [x, z, secs, yaw]);
 // Read the hidden spot from the conductor (test only).
 const spot = await page.evaluate(() => { const b = [...window.__lastConductor.beacons][0]; return { x: b.x, z: b.z }; });
 console.log('hidden beacon at', spot);
-const leftOf = await measure(spot.x - 7, spot.z + 1);
-const rightOf = await measure(spot.x + 7, spot.z + 1);
+// Stand in the middle of the street level with the beacon (about 5.5 m to one side) and turn around.
+const facingNorth = await measure(0, spot.z, 5, 0);
+const facingSouth = await measure(0, spot.z, 5, Math.PI);
+const side = spot.x > 0 ? 1 : -1; // +1: beacon is on the right when facing north
+const leftOf = side > 0 ? facingNorth : facingSouth;  // beacon on the listener's right
+const rightOf = side > 0 ? facingSouth : facingNorth; // beacon on the listener's left
 const far = await measure(0, 30);
-const near = await measure(spot.x, spot.z + 4);
+const near = await measure(0, spot.z + 3);
 const db = (a, b) => (20 * Math.log10(a / b)).toFixed(1);
 console.log('beacon to the right: R-L', db(leftOf.r, leftOf.l), 'dB');
 console.log('beacon to the left : R-L', db(rightOf.r, rightOf.l), 'dB');

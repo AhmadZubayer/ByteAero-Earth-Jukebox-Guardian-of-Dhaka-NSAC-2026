@@ -4,7 +4,7 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 
 // The 2D game in ../initial is the fallback for devices without WebGL.
 // In dev it is served at /classic/; `bun run build` copies it into dist/classic/.
-const classicDir = resolve(__dirname, '../initial/sites/earth-jukebox-dhaka/dist');
+const classicDir = resolve(import.meta.dirname, '../initial/sites/earth-jukebox-dhaka/dist');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json', '.csv': 'text/csv', '.ttf': 'font/ttf', '.txt': 'text/plain' };
 
 export default defineConfig({
