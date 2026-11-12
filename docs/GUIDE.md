@@ -36,6 +36,16 @@ where the heat stays hidden and you must find it by ear.
   gives 1 bonus coin for the next year. Answer most of them right for the **Earth Learner** badge.
 - Your ticket lists every fact you collected.
 
+## The blocks
+
+Every block has its own look and a green street sign with its name: Lotus Market and Hilsa Market have
+market stalls, School Lane has a school flag and a swing, Brick Kiln Road a brick chimney, Sari Street
+saris drying on lines, Boat Ghat boats and a ferry stop, the Paras and Kadam Corner flower beds and
+benches, Kite Lane kites in the sky. The names and streets are invented; each block's heat and green
+come from the NASA images.
+
+Each year lasts 3 to 4 minutes, and every block you make safe adds 15 seconds.
+
 ## One round
 
 1. **Listen.** Echo warns of a heat wave. A rising sitar line plays from each hot spot.

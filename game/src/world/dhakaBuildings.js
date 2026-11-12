@@ -159,9 +159,10 @@ export class DhakaBuildings {
 
   // Footprint centred on (x, z), w by d metres, with a shop floor and `floors` storeys above.
   // Returns the roof height.
-  add(x, z, w, d, floors, seed = 0) {
+  add(x, z, w, d, floors, seed = 0, paint = null) {
     const r = rng(seed * 9301 + 49297);
-    const style = Math.floor(r() * PAINTS.length);
+    const rolled = Math.floor(r() * PAINTS.length);
+    const style = paint == null ? rolled : paint % PAINTS.length;
     const sign = Math.floor(r() * SIGNS.length);
     const hasShop = r() < 0.8;
     const base = hasShop ? SHOP : 0;

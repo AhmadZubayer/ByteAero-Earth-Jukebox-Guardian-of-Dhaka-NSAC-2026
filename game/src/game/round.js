@@ -287,11 +287,12 @@ export class Round {
   // A block just became safe: make it obvious.
   blockSafe(i) {
     if (this.focus === i) this.focus = null;
+    if (!this.settings.relaxed) { this.time += 15; this.hud(); } // reward: more time for the next block
     const d = this.city.districts[i];
     const safe = this.forecast.districts.filter((x) => x.safe).length;
     this.city.effects.sparkle(new THREE.Vector3(d.cx, 2, d.cz));
     this.city.flashSafe(i);
-    this.h.celebrate(`✔ ${d.name} is safe!`);
+    this.h.celebrate(this.settings.relaxed ? `✔ ${d.name} is safe!` : `✔ ${d.name} is safe!  +15 s`);
     say(`${d.name} is now safe from the heat wave! ${safe} of ${N} blocks are safe. ${safe >= Math.ceil(N / 2) ? 'That is enough to win; more safe blocks earn more stars.' : `You need ${Math.ceil(N / 2) - safe} more to win.`}`, { urgent: true });
   }
 

@@ -14,37 +14,37 @@ export const waveFromTmax = (tmax) => 1.6 + (tmax - 38) * 0.22;
 
 export const ROUNDS = [
   {
-    year: 2000, real: true, spots: 1, coins: 14, time: 100, hidden: false, waveBonus: 0.25,
+    year: 2000, real: true, spots: 1, coins: 14, time: 210, hidden: false, waveBonus: 0.25,
     title: 'Every place has a sound',
     lesson: 'Hot places sound higher and brighter. Follow the sound to find the heat.',
     fragment: 'We remember the old trees on our street…',
   },
   {
-    year: 2010, real: true, spots: 2, coins: 16, time: 100, hidden: false,
+    year: 2010, real: true, spots: 2, coins: 16, time: 220, hidden: false,
     title: 'Two hot spots',
     lesson: 'Compare two dates carefully. Two snapshots are not a trend.',
     fragment: '…the summers felt longer every year…',
   },
   {
-    year: 2020, real: true, spots: 1, coins: 12, time: 95, hidden: true, talk: true,
+    year: 2020, real: true, spots: 1, coins: 12, time: 200, hidden: true, talk: true,
     title: 'Hidden heat',
     lesson: 'A satellite measures how hot the ground surface is. That is not the same as how hot the air feels to a person.',
     fragment: '…someone listened to the ground, not only the sky…',
   },
   {
-    year: 2024, real: true, spots: 1, coins: 10, time: 85, hidden: false, centre: true, waveBonus: 0.7,
+    year: 2024, real: true, spots: 1, coins: 10, time: 180, hidden: false, centre: true, waveBonus: 0.7,
     title: 'The hottest April air',
     lesson: 'Budgets force choices. A cooling centre keeps people safe, but it does not cool the city.',
     fragment: '…they kept people safe on the worst days…',
   },
   {
-    year: 2035, real: false, spots: 2, coins: 16, time: 100, hidden: false, choices: true,
+    year: 2035, real: false, spots: 2, coins: 16, time: 210, hidden: false, choices: true,
     title: 'Choose the future',
     lesson: 'Choices made today shape the heat of tomorrow.',
     fragment: '…they chose what kind of city to build…',
   },
   {
-    year: 2050, real: false, spots: 3, coins: 18, time: 110, hidden: false, final: true,
+    year: 2050, real: false, spots: 3, coins: 18, time: 240, hidden: false, final: true,
     title: 'The last heat wave',
     lesson: 'The ending is ours to write.',
     fragment: '…and now we can hear the birds again.',

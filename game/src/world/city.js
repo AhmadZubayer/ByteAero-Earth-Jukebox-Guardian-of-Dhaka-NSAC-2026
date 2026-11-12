@@ -11,6 +11,7 @@ import { Traffic } from './traffic.js';
 import { Animated } from '../player/character.js';
 import { Effects } from './effects.js';
 import { DhakaBuildings } from './dhakaBuildings.js';
+import { decorateCity, groundTint, paintsFor } from './landmarks.js';
 import { COLS, ROWS, colRow } from '../game/heat.js';
 import { DISTRICT_NAMES, layoutDistrict } from '../game/rounds.js';
 
@@ -122,7 +123,7 @@ export class City {
       const ndvi = cell.ndvi ?? 0.4;
       const tint = new THREE.Color('#cfc4b0').lerp(new THREE.Color('#a9b98a'), Math.max(0, Math.min(1, (ndvi - 0.25) / 0.4)));
       blocks.setMatrixAt(i, m4.makeTranslation(cx, 0.08, cz));
-      blocks.setColorAt(i, tint);
+      blocks.setColorAt(i, groundTint(i) ? new THREE.Color(groundTint(i)) : tint); // each block's own ground
       const d = {
         i, cx, cz, name: DISTRICT_NAMES[i], cell, layout, buildings: [], treePlots: [], big: { x: cx, z: cz, used: null }, fixes: [],
       };
@@ -132,7 +133,8 @@ export class City {
         const bx = cx + sx * 6.6, bz = cz + sz * 6.6;
         // Taller where the NASA NDVI shows less green (more built-up).
         const floors = Math.max(3, Math.min(10, Math.round(3 + (0.6 - ndvi) * 12 + ((i * 7 + n * 3) % 4))));
-        const h = blds.add(bx, bz, 8.2, 8.2, floors, i * 4 + n + 1);
+        const pal = paintsFor(i);
+        const h = blds.add(bx, bz, 8.2, 8.2, floors, i * 4 + n + 1, pal ? pal[n % pal.length] : null);
         world.addBox(bx, bz, 8.2, 8.2, h + 4);
         d.buildings.push({ x: bx, z: bz, h, type: 'dhaka', white: false });
       });
@@ -153,7 +155,7 @@ export class City {
       // Street furniture.
       lights.add(matrixFrom(cx - BLOCK / 2 + 0.6, 0.16, cz - BLOCK / 2 + 0.6, Math.PI / 4, 5));
       if (i % 2 === 0) benches.add(matrixFrom(cx + 3.2, 0.16, cz + 9.8, 0, 5));
-      for (let b = 0; b < 2; b++) bushes.add(matrixFrom(cx + (b ? 10.6 : -10.6), 0.16, cz + 10.6, b, 4.5));
+      bushes.add(matrixFrom(cx - 10.6, 0.16, cz + 10.6, 0, 4.5)); bushes.add(matrixFrom(cx + 10.6, 0.16, cz - 10.6, 1, 4.5));
       // Heat overlay (shown when the heat view is on).
       const ov = new THREE.Mesh(new THREE.PlaneGeometry(BLOCK - 0.4, BLOCK - 0.4), new THREE.MeshBasicMaterial({ color: '#3fb6a8', transparent: true, opacity: 0, depthWrite: false }));
       ov.rotation.x = -Math.PI / 2; ov.position.set(cx, 0.2, cz); ov.renderOrder = 2;
@@ -192,15 +194,16 @@ export class City {
       routes.push({ along: 'z', line, min: -HALF - 12, max: HALF + 12 }, { along: 'x', line, min: -HALF - 12, max: HALF + 12 });
     }
     this.traffic = new Traffic(g, models, routes, { count: low ? 6 : 12 });
-    for (let k = 0; k < (low ? 2 : 5); k++) {
-      const d = this.districts[(k * 7 + 3) % 25];
-      const b = d.buildings[0];
-      if (!b) continue;
-      const kite = makeKite(['#e63946', '#f1c40f', '#2a9d8f', '#8e44ad', '#ff7f50'][k]);
-      kite.position.set(b.x, b.h + 12 + k, b.z);
-      kite.userData = { base: kite.position.clone(), phase: k * 1.3 };
+    // Every block's own landmarks and name sign (merged into a few meshes).
+    const deco = decorateCity(this.districts, this.districts.map((d) => d.name), world);
+    g.add(deco.group);
+    deco.kites.forEach((k, n) => {
+      if (low && n % 2) return;
+      const kite = makeKite(['#e63946', '#f1c40f', '#2a9d8f', '#8e44ad', '#ff7f50'][n % 5]);
+      kite.position.set(k.x, k.h, k.z);
+      kite.userData = { base: kite.position.clone(), phase: n * 1.3 };
       g.add(kite); this.kites.push(kite);
-    }
+    });
 
     // Birds circle over the greenest districts.
     const green = [...this.districts].sort((a, b) => (b.cell.ndvi ?? 0) - (a.cell.ndvi ?? 0)).slice(0, low ? 1 : 3);
