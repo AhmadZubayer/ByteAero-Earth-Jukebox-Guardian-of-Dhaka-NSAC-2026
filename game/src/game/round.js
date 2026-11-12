@@ -12,6 +12,8 @@ import { say, directionWords, relAngle, vibrate } from '../ui/announce.js';
 import { dialogue, clear } from '../ui/dom.js';
 import { SoundWaves } from '../world/soundwaves.js';
 import { pickTree } from '../ui/treePicker.js';
+import { Target } from '../world/target.js';
+import { learn, onFact, yearFact, FIX_FACT } from './learn.js';
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -23,7 +25,9 @@ export class Round {
     this.wave = waveFor(data, def, state);
     this.layouts = this.cells.map(layoutDistrict);
     this.fixes = [];
-    this.coins = def.coins;
+    this.coins = def.coins + (state.quizBonus || 0);
+    this.quizBonus = state.quizBonus || 0;
+    state.quizBonus = 0;
     this.found = new Set();
     this.usedHint = false;
     this.usedHeatView = settings.heatView && !def.hidden;
@@ -108,6 +112,8 @@ export class Round {
     this.h.onWave = () => this.finish();
     this.h.select(this.selected);
     this.hud();
+    onFact((f) => this.h.tip(f));
+    this.guideTarget = new Target(this.rt.stage.scene);
     await audio.unlock();
     this.cond = new Conductor(audio);
     // See the heat calls: rings and sparks from each hot spot (not in the hidden-heat year, and
@@ -141,7 +147,10 @@ export class Round {
     const meanLst = this.cells.reduce((s, c) => s + (c.lst ?? 30), 0) / N;
     say(`Music for ${this.def.year}: ${describeMusic({ heatC: meanLst, tension: this.tension, rain: this.rainFor(), ndvi: this.cells.reduce((s, c) => s + (c.ndvi ?? 0), 0) / N, year: this.def.year })}`);
     this.where(true);
+    if (this.quizBonus) say(`Quiz bonus from last year: plus ${this.quizBonus} coin.`);
     this.phase = 'play';
+    // A first lesson for this year, then how the sound works.
+    setTimeout(() => { learn(yearFact(this.def.year), this.state) || learn('sonify', this.state) || (this.def.year !== 2000 && learn('rain', this.state)); }, 1500);
     this.bindInput();
     rt.setPlayerActive(true);
     clear();
@@ -154,6 +163,7 @@ export class Round {
     this.h.show(false);
     this.h.district('');
     this.h.compass(0, false);
+    onFact(null);
     return result;
   }
 
@@ -236,6 +246,7 @@ export class Round {
     this.refresh();
     const after = this.forecast.districts[placed.district];
     this.chime(after.safe && !before.safe);
+    learn(FIX_FACT[this.selected], this.state);
     const status = after.cooled ? 'This block is now safe from the wave' : after.sheltered ? 'People here can shelter, but the block is still hot' : `This block still needs about ${Math.max(0.1, after.excess - DANGER).toFixed(1)} more degrees of cooling`;
     say(`${this.selected === 'tree' ? this.tree.name : f.label} placed in ${d.name}. ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
     this.hud();
@@ -294,6 +305,7 @@ export class Round {
       if (heat01 != null && (!hottest || heat01 > hottest.h)) hottest = { h: heat01, rel, hidden };
     }
     if (this.settings.sound) playScan(audio, samples, p);
+    learn('scan', this.state);
     const words = hottest ? directionWords(hottest.rel, 30).split(',')[0] : 'nowhere nearby';
     say(`Scan: notes sweep around you, starting ahead and going right. The highest note is ${words}.`);
   }
@@ -337,6 +349,7 @@ export class Round {
         const text = `${d.name}: ground ${c.lst?.toFixed(1) ?? 'no data'} °C, green ${c.ndvi?.toFixed(2) ?? 'no data'} (${src})${status}`;
         this.h.district(text);
         say(text, { caption: false });
+        if ((c.ndvi ?? 0) >= 0.55) learn('ndvi', this.state);
       } else this.h.district('');
     }
     // Preview where the selected fix would go.
@@ -348,6 +361,79 @@ export class Round {
       this.ring.material.opacity = 0.6 + Math.sin(performance.now() / 200) * 0.3;
     } else this.ring.visible = false;
     if (Math.floor(this.time) !== this.lastShown) { this.lastShown = Math.floor(this.time); this.hud(); }
+    this.guideTarget?.update(dt, this.settings.reducedMotion);
+    if (!this.lastGuide || performance.now() - this.lastGuide > 250) { this.lastGuide = performance.now(); this.guide(); }
+  }
+
+  // ---------- Guidance: the one next thing to do, and where ----------
+  suggest() {
+    const p = this.rt.player.pos;
+    const list = this.forecast.districts.map((r, i) => ({ r, i })).filter(({ r }) => !r.safe);
+    if (!list.length) return { done: true };
+    const dist = (i) => { const c = districtCentre(i); return Math.hypot(c.x - p.x, c.z - p.z); };
+    // Prefer the most endangered block near the player.
+    list.sort((a, b) => (dist(a.i) - a.r.excess * 25) - (dist(b.i) - b.r.excess * 25));
+    for (const { r, i } of list) {
+      const d = this.city.districts[i];
+      const need = Math.max(0.1, r.excess - DANGER);
+      const free = (t) => plotFree(this.layouts, i, t, this.fixes);
+      const opts = [];
+      if (need >= 1.0 && this.coins >= 3 && free('pond') && !d.big.used) opts.push({ type: 'pond', x: d.big.x + 3, z: d.big.z, at: { x: d.big.x, z: d.big.z } });
+      const plot = this.coins >= 1 && free('tree') ? d.treePlots.find((q) => !q.used) : null;
+      if (plot) opts.push({ type: 'tree', x: plot.x, z: plot.z, at: plot });
+      const b = this.coins >= 2 && free('roof') ? d.buildings.find((q) => !q.white) : null;
+      if (b) { const sx = Math.sign(p.x - b.x) || 1, sz = Math.sign(p.z - b.z) || 1; const along = Math.abs(p.x - b.x) > Math.abs(p.z - b.z); opts.push({ type: 'roof', x: along ? b.x + sx * 5 : b.x, z: along ? b.z : b.z + sz * 5, at: b }); }
+      if (!opts.length && this.coins >= 3 && free('pond') && !d.big.used) opts.push({ type: 'pond', x: d.big.x + 3, z: d.big.z, at: { x: d.big.x, z: d.big.z } });
+      if (opts.length) return { district: i, d, need, ...opts[0], left: list.length };
+    }
+    return { stuck: true, left: list.length };
+  }
+
+  guide() {
+    if (this.phase !== 'play' || !this.h) return;
+    const p = this.rt.player.pos, yaw = this.rt.follow.yaw;
+    const unfound = this.spots.filter((s) => !this.found.has(s));
+    const elapsed = (performance.now() - this.startTime) / 1000;
+    const words = (x, z) => directionWords(relAngle(yaw, x - p.x, z - p.z), Math.hypot(x - p.x, z - p.z));
+    const showGuide = this.settings.guide !== false;
+    if (unfound.length) {
+      this.h.setSteps(this.def.year, { find: [`Find the heat (${this.found.size}/${this.spots.length})`, 'now'], protect: ['Protect the blocks around it', 'todo'], wave: ['Get ready for the heat wave', 'todo'] });
+      let best = null;
+      for (const s of unfound) { const c = districtCentre(s); const d = Math.hypot(c.x - p.x, c.z - p.z); if (!best || d < best.d) best = { c, d }; }
+      if (this.def.hidden) {
+        this.h.next('Find the hidden heat by ear. Walk where the sitar gets louder and faster. Press Q to scan.');
+        this.h.where(this.usedHint ? `Heat: ${words(best.c.x, best.c.z)}` : 'Tip: louder and faster = closer. Still lost? Press R.');
+        this.guideTarget.hide();
+      } else {
+        const marked = showGuide && (elapsed > 20 || this.usedHint);
+        this.h.next(marked ? 'Echo marked the hot spot with a yellow light. Go there!' : `Find the heat: follow the rising sitar${this.settings.heatView ? ' and the orange rings' : ''}.`);
+        this.h.where(this.settings.heatView || marked ? `Heat: ${words(best.c.x, best.c.z)}` : 'Listen: louder and faster = closer. Press R for directions.');
+        if (marked) { if (!this.markedSaid) { this.markedSaid = true; say('Echo marked the hot spot with a yellow light.'); } this.guideTarget.show(best.c.x, best.c.z, 2.2); } else this.guideTarget.hide();
+      }
+      return;
+    }
+    const sg = this.suggest();
+    const waveLabel = this.settings.relaxed ? 'Bring the heat wave (F) when ready' : 'Survive the heat wave (or press F)';
+    if (sg.done) {
+      this.h.setSteps(this.def.year, { find: ['Find the heat ✓', 'done'], protect: ['All blocks are safe', 'done'], wave: [waveLabel, 'now'] });
+      this.h.next('Every block is safe from the wave! Press F (or Bring the wave) when you are ready.');
+      this.h.where(''); this.guideTarget.hide(); return;
+    }
+    this.h.setSteps(this.def.year, { find: ['Find the heat ✓', 'done'], protect: [`Protect blocks: ${sg.left} still in danger`, 'now'], wave: [waveLabel, 'todo'] });
+    if (sg.stuck) {
+      this.h.next(this.coins < 1 ? 'Out of coins for this year. Press F to bring the heat wave.' : 'No room left for the fixes you can afford. Press F when ready.');
+      this.h.where(''); this.guideTarget.hide(); return;
+    }
+    const label = { tree: 'plant a tree', roof: 'paint a roof white', pond: 'dig a pond', centre: 'build a cooling centre' }[sg.type];
+    const key = { tree: 1, roof: 2, pond: 3, centre: 4 }[sg.type];
+    const here = Math.hypot(sg.x - p.x, sg.z - p.z) < 3.5;
+    const selected = this.selected === sg.type;
+    const how = here ? (selected ? `You are there: press E${this.rt.input.isTouch ? ' (Place)' : ''}.` : `You are there: press ${key} to choose it, then E.`) : `Go to the yellow light, then ${selected ? 'press E' : `press ${key}, then E`}.`;
+    this.h.next(`${sg.d.name} needs ${sg.need.toFixed(1)} °C of cooling. Next: ${label}. ${how}`);
+    this.h.where(here ? '' : `Yellow light: ${words(sg.x, sg.z)}`);
+    if (showGuide) this.guideTarget.show(sg.at.x, sg.at.z, sg.type === 'roof' ? 0.9 : sg.type === 'tree' ? 0.6 : 1.4); else this.guideTarget.hide();
+    if (sg.type === 'roof' && showGuide) this.guideTarget.group.position.y = sg.at.h || 0;
+    else this.guideTarget.group.position.y = 0;
   }
 
   foundSpot(s) {
@@ -362,6 +448,7 @@ export class Round {
     this.city.effects.sparkle(new THREE.Vector3(d.cx, 0, d.cz));
     this.rt.echo.scan(this.rt.player.pos, { color: '#ff9a3c', size: 20, dur: 1.2 });
     this.chime(true);
+    learn('heatIsland', this.state) || learn('lst', this.state);
     say(`Found a hot spot: ${d.name}, ground ${this.cells[s].lst.toFixed(1)} °C.${byEar ? ' Found by ear: listener bonus, plus 2 coins!' : ''} ${this.found.size < this.spots.length ? 'Listen for the next one.' : 'Now protect it and the blocks around it.'}`, { urgent: true });
     this.hud();
   }
@@ -370,6 +457,8 @@ export class Round {
     const rt = this.rt;
     this.ring.visible = false;
     say('The heat wave is here!', { urgent: true });
+    this.guideTarget?.hide();
+    learn('wave', this.state);
     // A warm front rolls out from each hot spot.
     const domes = this.spots.map((s) => {
       const c = districtCentre(s);
@@ -426,6 +515,7 @@ export class Round {
   }
 
   dispose() {
+    this.guideTarget?.dispose();
     this.cond?.stop();
     this.waves?.clear();
     this.city?.dispose();

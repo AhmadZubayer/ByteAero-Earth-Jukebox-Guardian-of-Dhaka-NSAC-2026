@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS = {
   vibration: true,
   heatView: true,
   speakDirections: true,
+  guide: true,
 };
 
 function read() {

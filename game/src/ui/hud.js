@@ -18,6 +18,17 @@ export class Hud {
       this.fixButtons[f.key] = b;
     }
     $('hud-menu').onclick = () => this.onMenu?.();
+    // Mission card: the goals, the one next thing to do, where to go, and what you just learned.
+    $('hud').querySelector('.mission')?.remove();
+    this.steps = {};
+    const stepList = h('ol', { class: 'mission-steps' }, ['find', 'protect', 'wave'].map((k) => (this.steps[k] = h('li', { 'data-state': 'todo' }))));
+    this.nextEl = h('p', { class: 'mission-next', 'aria-live': 'polite' });
+    this.whereEl = h('p', { class: 'mission-where', 'aria-hidden': 'true' });
+    this.hereEl = h('p', { class: 'mission-here', 'aria-hidden': 'true' });
+    this.tipEl = h('div', { class: 'mission-tip', hidden: true });
+    this.kicker = h('p', { class: 'mission-kicker' });
+    this.mission = h('section', { class: 'mission', 'aria-label': 'Your mission' }, this.kicker, stepList, this.nextEl, this.whereEl, this.hereEl, this.tipEl);
+    $('hud').append(this.mission);
     $('hud-wave').onclick = () => this.onWave?.();
   }
 
@@ -42,7 +53,28 @@ export class Hud {
     for (const [k, b] of Object.entries(this.fixButtons)) b.setAttribute('aria-pressed', String(k === key));
   }
 
-  district(text) { $('hud-district').textContent = text || ''; }
+  district(text) { this.hereEl.textContent = text ? `📍 ${text}` : ''; }
+
+  // steps: { find: [label, state], protect: [...], wave: [...] } with state 'todo' | 'now' | 'done'
+  setSteps(year, steps) {
+    this.kicker.textContent = `Your mission · ${year}`;
+    for (const [k, [label, st]] of Object.entries(steps)) {
+      const li = this.steps[k];
+      if (li.textContent !== label) li.textContent = label;
+      li.dataset.state = st;
+    }
+  }
+
+  next(text) { if (this.nextEl.textContent !== text) this.nextEl.textContent = text; }
+  where(text) { this.whereEl.textContent = text || ''; }
+
+  tip(fact) {
+    this.tipEl.hidden = false;
+    this.tipEl.replaceChildren(h('span', { class: 'tip-icon', 'aria-hidden': 'true' }, fact.icon), h('div', {}, h('strong', {}, `Did you know? ${fact.title}`), h('p', {}, fact.text)));
+    this.tipEl.classList.remove('pop'); void this.tipEl.offsetWidth; this.tipEl.classList.add('pop');
+    clearTimeout(this.tipTimer);
+    this.tipTimer = setTimeout(() => { this.tipEl.hidden = true; }, 14000);
+  }
 
   compass(angle, visible) {
     const c = $('hud-compass');

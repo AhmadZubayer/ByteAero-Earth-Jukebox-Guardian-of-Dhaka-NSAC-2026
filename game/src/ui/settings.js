@@ -8,6 +8,7 @@ const TOGGLES = [
   ['sound', 'Sound', 'Music and sound cues. Every cue also has a written description.'],
   ['captions', 'Show sound captions', 'Written descriptions of sounds appear on screen.'],
   ['speakDirections', 'Echo gives directions in words', 'Echo says where the heat is, like "ahead and to your left".'],
+  ['guide', 'Guide light', 'A yellow light shows where to go next, and the mission card says what to do.'],
   ['heatView', 'Heat view', 'Coloured heat overlay on the city. Turn it off to play by ear (listener bonus).'],
   ['relaxed', 'Relaxed mode', 'No timer. You bring the heat wave when you are ready.'],
   ['reducedMotion', 'Reduce motion', 'No camera shake, shimmer or bouncing.'],

@@ -12,10 +12,11 @@ import { loadModel, instance } from '../core/assets.js';
 import { visualizer } from '../ui/visualizer.js';
 import { Target } from '../world/target.js';
 import { pickTree } from '../ui/treePicker.js';
+import { FACTS } from './learn.js';
 
 const STEPS = 5;
 
-export async function tutorial(rt, settings) {
+export async function tutorial(rt, settings, state = null) {
   const scene = rt.stage.scene;
   const waves = new SoundWaves(scene);
   waves.enabled = !settings.reducedMotion;
@@ -33,15 +34,24 @@ export async function tutorial(rt, settings) {
   const skipped = new Promise((r) => { skip = r; });
   const text = h('p', { class: 'tut-text' });
   const keys = h('p', { class: 'tut-keys' });
+  const lesson = h('div', { class: 'mission-tip tut-lesson' });
   const where = h('p', { class: 'tut-where', 'aria-hidden': 'true' });
   const extra = h('div', { class: 'row tut-extra' });
   const count = h('p', { class: 'tut-count' });
   const status = h('div', { class: 'sr-only', 'aria-live': 'polite' });
   const viz = visualizer({ height: 54, compact: true });
   const card = h('section', { class: 'tut-card', 'aria-labelledby': 'tut-h' },
-    h('h2', { id: 'tut-h', class: 'tut-title' }, 'Tutorial'), count, text, keys, where, extra, viz, status,
+    h('h2', { id: 'tut-h', class: 'tut-title' }, 'Tutorial'), count, text, keys, where, extra, lesson, viz, status,
     h('div', { class: 'row' }, button('Skip tutorial', () => skip('skip'), 'secondary small')));
   show(card);
+  // Every step teaches one idea.
+  const teach = (id) => {
+    const f = FACTS[id];
+    if (state) { state.learned ||= []; if (!state.learned.includes(id)) state.learned.push(id); }
+    lesson.replaceChildren(h('span', { class: 'tip-icon', 'aria-hidden': 'true' }, f.icon), h('div', {}, h('strong', {}, `Learn: ${f.title}`), h('p', {}, f.text)));
+    lesson.classList.remove('pop'); void lesson.offsetWidth; lesson.classList.add('pop');
+    status.textContent += ` Learn: ${f.title}. ${f.text}`;
+  };
   const step = (n, main, hint) => {
     count.textContent = `Step ${n} of ${STEPS}`;
     text.textContent = main;
@@ -76,6 +86,7 @@ export async function tutorial(rt, settings) {
     // 1. Move
     target.show(0, 14);
     step(1, 'Walk to the yellow circle.', rt.input.isTouch ? 'Use the joystick on the left. Drag the screen to look around.' : 'Keys: W A S D or the arrow keys. Hold Shift to run. Drag the mouse to look around.');
+    teach('satellite');
     if (await race(frameLoop(() => near(0, 14, 2.4))) !== 'done') throw 'skip';
     chime(); fx.sparkle(new THREE.Vector3(0, 0, 14));
 
@@ -84,6 +95,7 @@ export async function tutorial(rt, settings) {
     const spot = { x: Math.random() < 0.5 ? -5.5 : 5.5, z: -26 };
     if (settings.sound) { cond.start(); cond.addBeacon({ x: spot.x, z: spot.z, lst: 33 }); }
     step(2, 'Listen! That rising sitar is the sound of heat. Walk toward it.', 'It gets louder, higher and faster as you get close. The rings show where it comes from. Stuck? Press R (or Where?) and Echo tells you the way.');
+    teach('sonify');
     rt.input.on('where', () => say(`Echo: the sound is ${directionWords(relAngle(rt.follow.yaw, spot.x - rt.player.pos.x, spot.z - rt.player.pos.z), Math.hypot(spot.x - rt.player.pos.x, spot.z - rt.player.pos.z))}.`));
     if (!settings.sound) waves.enabled = true;
     const silentRings = setInterval(() => { if (!settings.sound) waves.spawn(spot.x, spot.z, 500, 0); }, 1200);
@@ -97,6 +109,7 @@ export async function tutorial(rt, settings) {
 
     // 3. Scan
     step(3, 'Now ask Echo to scan.', rt.input.isTouch ? 'Tap the Scan button. Notes play all around you; the highest note points to the heat.' : 'Press Q. Notes play all around you, one direction at a time; the highest note points to the heat.');
+    teach('scan');
     const scanned = new Promise((res) => rt.input.on('scan', () => {
       const p = rt.player.pos, yaw = rt.follow.yaw;
       rt.echo.scan(p);
@@ -130,6 +143,7 @@ export async function tutorial(rt, settings) {
       return t;
     };
     step(4, 'Choose a tree, then plant it in the yellow circle.', rt.input.isTouch ? 'Tap Choose a tree. Then walk into the yellow circle and tap Place.' : 'Press 1 (or click Choose a tree). Then walk into the yellow circle and press E.');
+    teach('tree');
     extra.replaceChildren(button('Choose a tree', choose, 'small green'));
     rt.input.on('pick', (n) => { if (n === 1) choose(); });
     const planted = new Promise((res) => rt.input.on('act', async () => {
@@ -153,6 +167,7 @@ export async function tutorial(rt, settings) {
 
     // 5. Ready
     step(5, 'You are ready!', 'In each year a heat wave is coming. Find the hot spot by ear, spend your coins on trees, white roofs, ponds or a cooling centre near it, before the timer ends. Protect more than half of Dhaka to win.');
+    teach('heatIsland');
     const go = button('Start the game', () => skip('done'), '', { 'data-autofocus': true });
     card.querySelector('.row').replaceChildren(go);
     go.focus();

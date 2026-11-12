@@ -4,6 +4,7 @@ import { say } from './announce.js';
 import { nasaUrl, cityStats } from '../data/nasa.js';
 import { DISTRICT_NAMES, CHOICES } from '../game/rounds.js';
 import { starsFor, LOSE_BELOW } from '../game/heat.js';
+import { QUIZ, FACTS } from '../game/learn.js';
 
 const fmt = (v, d = 1) => (v == null ? 'no data' : v.toFixed(d));
 
@@ -52,6 +53,27 @@ export function reportScreen({ def, cells, data, outcome, state, final = false }
     }
     if (lost && final) onward.unshift(button('Continue to the Earth Record', () => resolve('next')));
 
+    // Quick question: check what this year taught. A right answer gives 1 bonus coin next year.
+    const qz = QUIZ[def.year];
+    let quizBox = null;
+    if (qz) {
+      const feedback = h('p', { class: 'quiz-feedback', 'aria-live': 'polite' });
+      const opts = qz.options.map((o, i) => h('button', { type: 'button', class: 'choice quiz-option', onclick: () => {
+        const right = i === qz.answer;
+        opts.forEach((b, k) => { b.disabled = true; b.classList.toggle('right', k === qz.answer); b.classList.toggle('wrong', k === i && !right); });
+        state.quiz ||= {};
+        state.quiz[def.year] = right;
+        if (right && !final) state.quizBonus = 1; // used next year, or on a retry of this one
+        feedback.textContent = `${right ? 'Correct!' : 'Not quite.'} ${qz.why}${right && !final ? (lost ? ' Bonus: +1 coin when you try again.' : ' Bonus: +1 coin next year.') : ''}`;
+        say(feedback.textContent);
+      } }, h('strong', {}, String.fromCharCode(65 + i)), ` ${o}`));
+      quizBox = h('section', { class: 'quiz', 'aria-labelledby': 'quiz-h' },
+        h('h3', { id: 'quiz-h' }, '🧠 Quick question'), h('p', {}, qz.q), h('div', { class: 'choice-grid' }, opts), feedback);
+    }
+    const learnedNow = (state.learned || []).slice(state.learnedShown || 0).map((id) => FACTS[id]).filter(Boolean);
+    state.learnedShown = (state.learned || []).length;
+    const learnedBox = learnedNow.length ? h('section', { class: 'note learned' }, h('h3', {}, '💡 What you learned this year'), h('ul', {}, learnedNow.map((f) => h('li', {}, h('strong', {}, `${f.title}: `), f.text)))) : null;
+
     show(h('section', { class: 'panel wide', 'aria-labelledby': 'rep-h' },
       h('p', { class: 'kicker' }, 'Echo\'s report'),
       h('h2', { id: 'rep-h' }, `${def.year}: ${res.pct}% of Dhaka protected`),
@@ -60,6 +82,8 @@ export function reportScreen({ def, cells, data, outcome, state, final = false }
       h('p', {}, lost
         ? `More than half the city was left in the heat. ${final ? 'This ending is a warning, not a fate.' : 'Try again: listen for the hot spot first, then protect the blocks around it.'}`
         : `You used ${fixText}. ${res.cooledPct}% of blocks stayed cool${sheltered ? `, and people in ${sheltered} more could shelter in a cooling centre` : ''}.${outcome.byEar ? ' You found heat by ear: listener bonus!' : ''}`),
+      learnedBox,
+      quizBox,
       h('div', { class: 'report-img' },
         h('figure', {}, h('img', { src: nasaUrl(`nasa-modis-dhaka-lst-${imgYear}.png`), alt: `NASA MODIS land surface temperature map of the Dhaka area, mid-April ${imgYear}. Yellow is warm; deeper orange is hotter.` }),
           h('figcaption', {}, `Land surface temperature, mid-April ${imgYear} (NASA MODIS via GIBS)${def.real ? '' : ', shown as the real reference'}`)),

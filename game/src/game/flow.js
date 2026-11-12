@@ -162,6 +162,8 @@ export function badgesFor(state) {
   const b = [];
   if (r.some((x) => x.byEar)) b.push({ key: 'hunter', name: 'Heat Hunter', why: 'Found a hot spot by ear alone' });
   if (avg >= 80) b.push({ key: 'cooler', name: 'City Cooler', why: `Protected ${Math.round(avg)}% of Dhaka on average` });
+  const q = Object.values(state.quiz || {});
+  if (q.length >= 4 && q.filter(Boolean).length >= q.length - 1) b.push({ key: 'learner', name: 'Earth Learner', why: `Answered ${q.filter(Boolean).length} of ${q.length} quick questions right` });
   const last = r.find((x) => x.year === 2050);
   if (last && last.pct >= 75) b.push({ key: 'future', name: 'Future Maker', why: 'Made 2050 calmer' });
   return { list: b, avg: Math.round(avg) };
@@ -185,7 +187,7 @@ async function practice(state) {
   await street.load();
   rt.setScene(street);
   window.__phase = 'tutorial';
-  await tutorial(rt, settings);
+  await tutorial(rt, settings, state);
   window.__phase = 'tutorial-done';
   state.practiced = true;
   saveProgress(state);

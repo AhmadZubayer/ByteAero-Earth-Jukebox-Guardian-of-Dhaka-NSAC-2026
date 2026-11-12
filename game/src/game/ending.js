@@ -8,6 +8,7 @@ import { ROUNDS, CHOICES } from './rounds.js';
 import { newState } from './flow.js';
 import { clearProgress } from '../core/save.js';
 import { visualizer } from '../ui/visualizer.js';
+import { FACTS } from './learn.js';
 
 function recordRounds(state) {
   return state.results.filter(Boolean).map((r) => ({
@@ -104,6 +105,9 @@ export function ticket(state, badges) {
           h('caption', { class: 'sr-only' }, 'Results by year'),
           h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'Year'), h('th', { scope: 'col' }, 'Protected'), h('th', { scope: 'col' }, 'Stars'), h('th', { scope: 'col' }, 'Data'))),
           h('tbody', {}, results.map((r) => h('tr', {}, h('th', { scope: 'row' }, String(r.year)), h('td', {}, `${r.pct}%`), h('td', {}, stars(r.stars)), h('td', {}, r.real ? 'NASA MODIS + POWER' : 'imagined'))))),
+        h('h3', {}, '💡 What you learned'),
+        (state.learned || []).length ? h('ul', { class: 'learned-list' }, state.learned.map((id) => FACTS[id]).filter(Boolean).map((f) => h('li', {}, `${f.icon} ${f.title}`))) : h('p', {}, 'Play the rounds to collect facts.'),
+        state.quiz ? h('p', {}, `Quick questions: ${Object.values(state.quiz).filter(Boolean).length} of ${Object.keys(state.quiz).length} right.`) : null,
         h('h3', {}, 'Badges'),
         badges.list.length ? h('div', {}, badges.list.map((b) => h('span', { class: 'badge' }, `🏅 ${b.name}`, h('small', {}, ` · ${b.why}`)))) : h('p', {}, 'No badges this time. Play again to earn Heat Hunter, City Cooler and Future Maker.'),
         h('p', { class: 'note' }, 'Heat per block from NASA MODIS land surface temperature (not air temperature); weather from NASA POWER; global frames from NASA SVS 5060 and GISTEMP. Streets, people, 2035 and 2050 are imagined. Cooling effects are game estimates.'),

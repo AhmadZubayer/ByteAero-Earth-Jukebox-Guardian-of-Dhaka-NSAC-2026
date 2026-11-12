@@ -59,6 +59,8 @@ try {
   for (let k = 0; k < 8; k++) { const n = page.locator('.dialogue button').first(); if (await n.count() === 0) break; await n.click(); await page.waitForTimeout(150); }
   await page.waitForFunction('window.__round.phase === "play"', null, { timeout: 20000 });
   check(true, '2000 round starts');
+  await page.waitForTimeout(600);
+  check((await page.locator('.mission-next').textContent()).length > 10, `mission card says what to do: "${(await page.locator('.mission-next').textContent()).slice(0, 60)}"`);
   // Plant a tree with the keyboard next to a free plot, then bring the wave with F.
   await page.evaluate(() => { const r = window.__round; const d = r.city.districts[r.spots[0]]; const p = d.treePlots.find((q) => !q.used); window.__rt.player.pos.set(p.x + 0.8, 0, p.z + 0.8); });
   await page.waitForTimeout(300);
@@ -72,6 +74,9 @@ try {
   await page.keyboard.press('KeyF');
   await page.waitForSelector('#rep-h', { timeout: 30000 });
   check(true, `round completes: ${await page.locator('#rep-h').textContent()}`);
+  check(await page.locator('.mission-tip, .learned li').count() > 0, 'facts were shown during the round and listed in the report');
+  await page.locator('.quiz-option').first().click();
+  check((await page.locator('.quiz-feedback').textContent()).startsWith('Correct'), 'report quiz answers and explains');
   check(errors.length === 0, `no console errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
   await ctx.close();
 } catch (e) {

@@ -295,3 +295,57 @@ h1[tabindex='-1']:focus, h2[tabindex='-1']:focus { outline: none; }
 @media (max-width: 640px) { .tree-grid { grid-template-columns: 1fr; } .tree-option { grid-template-columns: 48px 1fr; justify-items: start; text-align: left; } .tree-icon { grid-row: span 2; font-size: 36px; } }
 .tut-where { font-size: 14px; font-weight: 700; color: #ffe14d; margin: 0 0 6px; }
 .tut-where:empty, .tut-extra:empty { display: none; }
+
+/* Mission card (rounds) */
+#hud-district { display: none !important; }
+.mission { position: absolute; top: 64px; left: var(--gutter); width: min(370px, calc(100% - 2 * var(--gutter))); background: rgba(9, 16, 34, 0.84); color: #eef3ff; border: 1px solid rgba(160, 200, 255, 0.3); border-radius: 16px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); pointer-events: auto; }
+.mission-kicker { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9fd0ff; }
+.mission-steps { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 3px; font-size: 14px; }
+.mission-steps li { display: flex; gap: 8px; align-items: baseline; color: #9fb0d0; }
+.mission-steps li::before { content: '○'; width: 14px; flex: none; }
+.mission-steps li[data-state='now'] { color: #fff; font-weight: 700; }
+.mission-steps li[data-state='now']::before { content: '▶'; color: #ffe14d; }
+.mission-steps li[data-state='done'] { color: #8fdca0; text-decoration: line-through; text-decoration-color: rgba(143, 220, 160, 0.5); }
+.mission-steps li[data-state='done']::before { content: '✔'; color: #8fdca0; }
+.mission-next { margin: 4px 0; font-size: 17px; font-weight: 800; line-height: 1.3; }
+.mission-where { margin: 2px 0; font-size: 14px; font-weight: 700; color: #ffe14d; }
+.mission-where:empty, .mission-here:empty { display: none; }
+.mission-here { margin: 6px 0 0; font-size: 13px; color: #c9d6ef; }
+.mission-tip { display: flex; gap: 10px; margin-top: 10px; padding: 10px; border-radius: 12px; background: rgba(255, 225, 77, 0.12); border: 1px solid rgba(255, 225, 77, 0.45); }
+.mission-tip[hidden] { display: none; }
+.mission-tip.pop { animation: tipPop 0.45s ease-out; }
+.mission-tip strong { display: block; font-size: 14px; color: #ffe14d; }
+.mission-tip p { margin: 3px 0 0; font-size: 13.5px; line-height: 1.4; }
+.tip-icon { font-size: 26px; line-height: 1; }
+@keyframes tipPop { from { transform: scale(0.92); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 640px) {
+  .mission { top: 96px; left: 8px; right: 8px; width: auto; padding: 8px 10px; }
+  .mission-steps, .mission-kicker, .mission-here { display: none; }
+  .mission-next { font-size: 14px; }
+  .mission-where { font-size: 13px; }
+  .mission-tip { margin-top: 6px; padding: 6px 8px; }
+  .mission-tip p { font-size: 12.5px; }
+  .hud-compass { bottom: 252px; }
+}
+
+/* Quiz and lessons in the report */
+.quiz { margin: 14px 0; padding: 14px; border-radius: 14px; background: #eef6ff; border: 2px solid #9fc4ea; }
+.quiz h3 { margin-top: 0; }
+.quiz-option { display: flex; gap: 8px; align-items: baseline; }
+.quiz-option.right { background: #d9f2d2; box-shadow: inset 0 0 0 3px var(--green); }
+.quiz-option.wrong { background: #ffe0d9; box-shadow: inset 0 0 0 3px var(--heat); }
+.quiz-option:disabled { cursor: default; opacity: 1; }
+.quiz-feedback { font-weight: 700; margin: 10px 0 0; }
+.learned ul { margin: 6px 0 0; padding-left: 18px; }
+.learned li { margin: 4px 0; }
+.learned-list { columns: 2; padding-left: 18px; }
+@media (max-width: 640px) { .learned-list { columns: 1; } }
+.tut-lesson { margin: 8px 0; }
+.tut-lesson:empty { display: none; }
+@media (max-width: 640px) { .tut-lesson p { display: none; } }
+@media (max-width: 640px) {
+  body:not(.has-panel) #captions { top: auto; bottom: 222px; }
+  #captions div:nth-last-child(n + 3) { display: none; }
+  #captions div { font-size: 13px; padding: 4px 10px; }
+}
+body.has-panel #captions { display: none; }

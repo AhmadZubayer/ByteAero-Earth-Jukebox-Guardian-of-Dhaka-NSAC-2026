@@ -18,6 +18,24 @@ description on screen and for screen readers.
 **Optional: Sound Lab** (button on the title screen). Move Heat, Rain and Green and hear what each
 does, see the notes flow in the live visualiser, try the audio legend, then name three clues in Quick Ears.
 
+## Never lost: the mission card and the yellow light
+
+During a round the card at the top left shows your three goals (find the heat, protect the blocks,
+the heat wave), the **one next thing to do** ("Rooftop Hill needs 1.1 °C of cooling. Next: plant a
+tree"), and which way to go. A **yellow light** marks the spot (it can be turned off in settings as
+*Guide light*). If you have not found the heat after 20 seconds, Echo marks it for you, except in 2020,
+where the heat stays hidden and you must find it by ear.
+
+## Learning as you play
+
+- **Did you know?** cards pop up when you do something new: find heat (the urban heat island), plant a
+  tree (shade and evaporation), paint a roof (reflecting sunlight), dig a pond, open a cooling centre,
+  walk into a green block (how NDVI measures plants from space), scan (sonification).
+- Each tutorial step teaches one idea too.
+- Echo's report lists **what you learned this year** and asks one **quick question**. A right answer
+  gives 1 bonus coin for the next year. Answer most of them right for the **Earth Learner** badge.
+- Your ticket lists every fact you collected.
+
 ## One round
 
 1. **Listen.** Echo warns of a heat wave. A rising sitar line plays from each hot spot.
@@ -44,7 +62,7 @@ does, see the notes flow in the live visualiser, try the audio legend, then name
 **Stars:** 50 % protected = 1 star, 75 % = 2, 90 % = 3.
 **Listener bonus:** find a hot spot with the heat view off and without asking Echo for directions: +2 coins.
 **Badges:** Heat Hunter (found heat by ear alone), City Cooler (80 % or more on average),
-Future Maker (75 % or more in 2050).
+Future Maker (75 % or more in 2050), Earth Learner (quick questions right).
 
 ## The six years
 
