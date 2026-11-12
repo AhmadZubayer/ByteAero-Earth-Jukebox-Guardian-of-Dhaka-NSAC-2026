@@ -349,3 +349,7 @@ h1[tabindex='-1']:focus, h2[tabindex='-1']:focus { outline: none; }
   #captions div { font-size: 13px; padding: 4px 10px; }
 }
 body.has-panel #captions { display: none; }
+.place-btn { background: #e9f8e4; min-width: 150px; }
+.place-btn.ready { background: var(--green); color: #fff; box-shadow: 0 0 0 3px #bdf0b6; }
+.place-btn.ready small { color: #e8ffe4; }
+@media (pointer: coarse), (max-width: 640px) { .place-btn { display: none; } }

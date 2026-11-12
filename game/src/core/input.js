@@ -25,7 +25,7 @@ export class Input {
     let drag = null;
     canvas.addEventListener('pointerdown', (e) => {
       if (!this.enabled) return;
-      drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now() };
       canvas.setPointerCapture?.(e.pointerId);
     });
     canvas.addEventListener('pointermove', (e) => {
@@ -34,7 +34,13 @@ export class Input {
       this.look.dy += e.clientY - drag.y;
       drag.x = e.clientX; drag.y = e.clientY;
     });
-    const end = (e) => { if (drag && drag.id === e.pointerId) drag = null; };
+    // A short click or tap without dragging is a "tap" on the world (used to place fixes).
+    const end = (e) => {
+      if (!drag || drag.id !== e.pointerId) return;
+      const moved = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0);
+      if (moved < 8 && performance.now() - drag.t0 < 400) this.fire('tap', { x: e.clientX, y: e.clientY });
+      drag = null;
+    };
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
 

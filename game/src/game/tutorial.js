@@ -142,13 +142,17 @@ export async function tutorial(rt, settings, state = null) {
       if (t) { chosen = t; say(`${t.name} chosen. Now stand in the yellow circle and press ${rt.input.isTouch ? 'Place' : 'E'}.`); text.textContent = `${t.name} chosen. Now plant it in the yellow circle.`; }
       return t;
     };
-    step(4, 'Choose a tree, then plant it in the yellow circle.', rt.input.isTouch ? 'Tap Choose a tree. Then walk into the yellow circle and tap Place.' : 'Press 1 (or click Choose a tree). Then walk into the yellow circle and press E.');
+    step(4, 'Choose a tree, then plant it in the yellow circle.', rt.input.isTouch ? 'Tap Choose a tree. Then walk into the yellow circle and tap Place.' : 'Press 1 (or click Choose a tree). Then walk into the yellow circle and press E, or just click inside the circle.');
     teach('tree');
-    extra.replaceChildren(button('Choose a tree', choose, 'small green'));
+    extra.replaceChildren(button('Choose a tree', choose, 'small green'), button('Plant here (E)', () => plant(null), 'small'));
     rt.input.on('pick', (n) => { if (n === 1) choose(); });
-    const planted = new Promise((res) => rt.input.on('act', async () => {
+    let plant = null;
+    const planted = new Promise((res) => { plant = async (clicked) => {
+      if (done4) return;
       if (!chosen && !(await choose())) return;
-      if (!near(tree.x, tree.z, 2.6)) { say('Walk into the yellow circle first.'); return; }
+      const inCircle = clicked ? Math.hypot(clicked.x - tree.x, clicked.z - tree.z) < 2.8 && near(tree.x, tree.z, 30) : near(tree.x, tree.z, 2.6);
+      if (!inCircle) { say(clicked ? 'Click inside the yellow circle.' : 'Walk into the yellow circle first, or click inside it.'); return; }
+      done4 = true;
       const model = treeModels[chosen.kind], s = TREE_SCALE[chosen.kind];
       const t = instance(model); t.scale.setScalar(0.01); t.position.set(tree.x, 0.02, tree.z); scene.add(t);
       const t0 = performance.now();
@@ -161,7 +165,10 @@ export async function tutorial(rt, settings, state = null) {
       extra.replaceChildren();
       say(`${chosen.name} planted! It will shade and cool this street.`);
       res();
-    }));
+    }; });
+    let done4 = false;
+    rt.input.on('act', () => plant(null));
+    rt.input.on('tap', (pt) => { const g = rt.groundPoint(pt.x, pt.y); if (g) plant({ x: g.x, z: g.z }); });
     if (await race(planted) === 'skip') throw 'skip';
     await new Promise((r) => setTimeout(r, 1500));
 
@@ -180,7 +187,7 @@ export async function tutorial(rt, settings, state = null) {
     waves.clear();
     fx.clearLoops();
     always(); target.dispose(); scene.remove(fx.batch);
-    for (const a of ['where', 'scan', 'act', 'pick']) rt.input.on(a, null);
+    for (const a of ['where', 'scan', 'act', 'pick', 'tap']) rt.input.on(a, null);
     clear();
   }
   return result;

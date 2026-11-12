@@ -18,6 +18,9 @@ export class Hud {
       this.fixButtons[f.key] = b;
     }
     $('hud-menu').onclick = () => this.onMenu?.();
+    this.placeBtn = h('button', { type: 'button', class: 'fix-btn place-btn', title: 'Place the chosen fix (key E). You can also click the ground.' }, h('span', { class: 'place-label' }, 'Place'), h('small', {}, 'E · or click the ground'));
+    this.placeBtn.addEventListener('click', () => this.onPlace?.());
+    bar.append(this.placeBtn);
     // Mission card: the goals, the one next thing to do, where to go, and what you just learned.
     $('hud').querySelector('.mission')?.remove();
     this.steps = {};
@@ -63,6 +66,12 @@ export class Hud {
       if (li.textContent !== label) li.textContent = label;
       li.dataset.state = st;
     }
+  }
+
+  placeState(ok, label) {
+    this.placeBtn.classList.toggle('ready', ok);
+    const l = this.placeBtn.querySelector('.place-label');
+    if (l.textContent !== label) l.textContent = label;
   }
 
   next(text) { if (this.nextEl.textContent !== text) this.nextEl.textContent = text; }

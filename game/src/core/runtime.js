@@ -50,6 +50,21 @@ export class Runtime {
     document.getElementById('touch').hidden = !(v && this.input.isTouch && !this.settings.textOnly);
   }
 
+  // Ground point (y = 0) under a screen position, or null.
+  groundPoint(clientX, clientY) {
+    const el = this.stage.renderer.domElement, r = el.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, this.stage.camera);
+    const hit = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.16), new THREE.Vector3());
+    return hit;
+  }
+
+  // A point a little in front of the child, where things get placed.
+  frontPoint(dist = 1.6) {
+    const p = this.player.pos, f = this.player.facing;
+    return { x: p.x + Math.sin(f) * dist, z: p.z + Math.cos(f) * dist };
+  }
+
   onFrame(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
 
   loop() {

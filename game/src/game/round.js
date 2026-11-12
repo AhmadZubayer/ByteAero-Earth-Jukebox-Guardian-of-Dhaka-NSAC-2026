@@ -110,6 +110,7 @@ export class Round {
     this.h.onPick = (k) => this.userPick(k);
     this.h.onMenu = () => this.rt.input.fire('menu');
     this.h.onWave = () => this.finish();
+    this.h.onPlace = () => this.act();
     this.h.select(this.selected);
     this.hud();
     onFact((f) => this.h.tip(f));
@@ -186,6 +187,7 @@ export class Round {
     const i = this.rt.input;
     i.on('pick', (n) => this.userPick(['tree', 'roof', 'pond', 'centre'][n - 1]));
     i.on('act', () => this.act());
+    i.on('tap', (pt) => this.tap(pt));
     i.on('scan', () => this.scan());
     i.on('where', () => { this.usedHint = true; this.where(false); });
     i.on('overlay', () => { this.settings.heatView = !this.settings.heatView; if (this.settings.heatView) this.usedHeatView = true; this.refresh(); say(`Heat view ${this.settings.heatView ? 'on' : 'off'}.`); });
@@ -220,21 +222,44 @@ export class Round {
     say(`${f.label} selected: ${f.what}. Costs ${f.cost}.`, { caption: false });
   }
 
-  act() {
+  // E, the Place button and a click on the ground all place the chosen fix through here.
+  act() { this.tryPlace(null); }
+
+  tap(pt) {
+    if (this.phase !== 'play') return;
+    const g = this.rt.groundPoint(pt.x, pt.y);
+    if (!g) return;
+    const p = this.rt.player.pos;
+    if (Math.hypot(g.x - p.x, g.z - p.z) > 30) { say('That is too far. Walk closer, then click again.'); return; }
+    this.tryPlace({ x: g.x, z: g.z });
+  }
+
+  // Where the chosen fix would go now (aimed point = in front of the child, or a clicked point).
+  aim(point) {
+    const p = this.rt.player.pos;
+    const a = point || (this.selected === 'tree' ? this.rt.frontPoint(1.6) : { x: p.x, z: p.z });
+    return a;
+  }
+
+  tryPlace(point) {
     if (this.phase !== 'play') return;
     const p = this.rt.player.pos;
     // Talk to the tea seller in 2020.
-    if (this.def.talk && !this.talked && this.city.teaStall.position.distanceTo(p) < 4) { this.talk(); return; }
+    if (!point && this.def.talk && !this.talked && this.city.teaStall.position.distanceTo(p) < 4) { this.talk(); return; }
     const f = FIXES[this.selected];
-    if (this.coins < f.cost) { say(`Not enough coins for a ${f.label.toLowerCase()}.`); return; }
-    if (this.selected === 'tree' && !this.tree) { this.chooseTree().then((t) => { if (t) this.act(); }); return; }
-    const di = districtAt(p.x, p.z);
-    const target = this.city.preview(this.selected, p.x, p.z);
+    if (this.coins < f.cost) { say(`Not enough coins for a ${f.label.toLowerCase()}. ${this.coins} left.`); return; }
+    if (this.selected === 'tree' && !this.tree) { this.chooseTree().then((t) => { if (t) this.tryPlace(point); }); return; }
+    const a = this.aim(point);
+    const di = districtAt(a.x, a.z);
+    const target = di < 0 ? null : this.city.preview(this.selected, a.x, a.z);
     if (di < 0 || !target || !plotFree(this.layouts, di, this.selected, this.fixes)) {
-      say(this.selected === 'roof' ? 'Stand next to a building to paint its roof white.' : this.selected === 'tree' ? 'No free spot for a tree here. Try open ground in a block.' : 'Go to the middle of a block with an empty square to build this.');
+      const name = di >= 0 ? this.city.districts[di].name : 'here';
+      say(this.selected === 'roof' ? `No roof to paint ${di >= 0 ? `in ${name}` : 'here'}. Stand next to a building.`
+        : this.selected === 'tree' ? (di < 0 ? 'Walk into a city block first.' : `${name} has no room for more trees. Try a white roof, or another block.`)
+        : (di < 0 ? 'Walk into a city block first.' : `${name}'s middle square is already used. Try another block.`));
       return;
     }
-    const placed = this.city.place(this.selected, p.x, p.z, this.selected === 'tree' ? this.tree.kind : null);
+    const placed = this.city.place(this.selected, a.x, a.z, this.selected === 'tree' ? this.tree.kind : null);
     if (!placed) { say('That does not fit here.'); return; }
     this.fixes.push({ type: this.selected, district: placed.district });
     this.coins -= f.cost;
@@ -248,7 +273,8 @@ export class Round {
     this.chime(after.safe && !before.safe);
     learn(FIX_FACT[this.selected], this.state);
     const status = after.cooled ? 'This block is now safe from the wave' : after.sheltered ? 'People here can shelter, but the block is still hot' : `This block still needs about ${Math.max(0.1, after.excess - DANGER).toFixed(1)} more degrees of cooling`;
-    say(`${this.selected === 'tree' ? this.tree.name : f.label} placed in ${d.name}. ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
+    const away = this.selected === 'tree' && placed.at && !placed.at.exact ? ` It went on the open ground ${directionWords(relAngle(this.rt.follow.yaw, placed.at.x - p.x, placed.at.z - p.z), Math.hypot(placed.at.x - p.x, placed.at.z - p.z))}.` : '';
+    say(`${this.selected === 'tree' ? this.tree.name : f.label} placed in ${d.name}.${away} ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
     this.hud();
   }
 
@@ -353,8 +379,11 @@ export class Round {
       } else this.h.district('');
     }
     // Preview where the selected fix would go.
-    const t = this.city.preview(this.selected, p.x, p.z);
-    if (t && this.coins >= FIXES[this.selected].cost) {
+    const aimAt = this.aim(null);
+    const t = this.city.preview(this.selected, aimAt.x, aimAt.z);
+    const canPlace = !!t && this.coins >= FIXES[this.selected].cost && plotFree(this.layouts, districtAt(aimAt.x, aimAt.z), this.selected, this.fixes);
+    this.h.placeState(canPlace, this.selected === 'tree' ? (this.tree ? `Plant ${this.tree.name}` : 'Choose a tree') : `Place ${FIXES[this.selected].label}`);
+    if (t && canPlace) {
       this.ring.visible = true;
       this.ring.position.set(t.x, (t.y ?? 0.2) + 0.05, t.z);
       this.ring.scale.setScalar(t.r);
@@ -524,6 +553,6 @@ export class Round {
     this.city?.dispose();
     if (this.ring) this.rt.stage.scene.remove(this.ring);
     const i = this.rt?.input;
-    if (i) for (const a of ['pick', 'act', 'scan', 'where', 'overlay', 'finish']) i.on(a, null);
+    if (i) for (const a of ['pick', 'act', 'tap', 'scan', 'where', 'overlay', 'finish']) i.on(a, null);
   }
 }

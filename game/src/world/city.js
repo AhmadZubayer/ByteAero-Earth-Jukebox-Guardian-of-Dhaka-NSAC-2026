@@ -247,6 +247,20 @@ export class City {
     }
   }
 
+  // Where a tree would go for an aimed point (x, z): right there if it is open ground inside a
+  // block, otherwise the nearest free tree spot of that block. Returns { x, z, slot, exact } or null.
+  treeSpot(x, z) {
+    const di = districtAt(x, z);
+    if (di < 0) return null;
+    const d = this.districts[di];
+    const slot = this.nearestFree(d.treePlots, x, z, 40); // the block still has room for a tree?
+    if (!slot) return null;
+    const inBlock = Math.abs(x - d.cx) < BLOCK / 2 - 0.8 && Math.abs(z - d.cz) < BLOCK / 2 - 0.8;
+    const clearOfPond = !(d.big.used && Math.hypot(x - d.big.x, z - d.big.z) < 3.4);
+    if (inBlock && clearOfPond && this.rt.world.isFree(x, z, 1.1)) return { x, z, slot, exact: true, district: di };
+    return { x: slot.x, z: slot.z, slot, exact: false, district: di };
+  }
+
   // Place a fix. Returns a short description, or null if it does not fit here.
   place(type, x, z, treeKind = null) {
     const di = districtAt(x, z);
@@ -254,9 +268,10 @@ export class City {
     const d = this.districts[di];
     const pos = new THREE.Vector3(x, 0.2, z);
     if (type === 'tree') {
-      const p = this.nearestFree(d.treePlots, x, z, 40); // any free spot in this block
-      if (!p) return null;
-      p.used = 'planted';
+      const spot = this.treeSpot(x, z);
+      if (!spot) return null;
+      spot.slot.used = 'planted'; // keeps the number of trees a block can take the same
+      const p = { x: spot.x, z: spot.z, exact: spot.exact };
       this.addTree(p.x, p.z, treeKind ?? d.fixes.length % 3, 1, true);
       this.effects.leaves(new THREE.Vector3(p.x, 0, p.z));
       d.fixes.push('tree');
@@ -313,7 +328,7 @@ export class City {
     const di = districtAt(x, z);
     if (di < 0) return null;
     const d = this.districts[di];
-    if (type === 'tree') { const p = this.nearestFree(d.treePlots, x, z, 40); return p ? { x: p.x, z: p.z, r: 1.2 } : null; }
+    if (type === 'tree') { const p = this.treeSpot(x, z); return p ? { x: p.x, z: p.z, r: 1.2 } : null; }
     if (type === 'roof') {
       let best = null, bd = 9;
       for (const b of d.buildings) { if (b.white) continue; const dist = Math.max(Math.abs(b.x - x), Math.abs(b.z - z)) - 4.1; if (dist < bd) { bd = dist; best = b; } }
