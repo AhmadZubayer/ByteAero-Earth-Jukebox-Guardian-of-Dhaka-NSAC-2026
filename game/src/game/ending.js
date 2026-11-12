@@ -7,6 +7,7 @@ import { renderRecord, wavBlob } from '../audio/recorder.js';
 import { ROUNDS, CHOICES } from './rounds.js';
 import { newState } from './flow.js';
 import { clearProgress } from '../core/save.js';
+import { visualizer } from '../ui/visualizer.js';
 
 function recordRounds(state) {
   return state.results.filter(Boolean).map((r) => ({
@@ -70,6 +71,7 @@ export function earthRecord(state, data, settings) {
       h('h2', { id: 'rec-h' }, 'Your six years as one piece of music'),
       h('p', {}, `Each part is one year (${SEGMENT.toFixed(1)} seconds). The sitar plays the five rows of the city from north to south, then the city average: higher notes for hotter ground. The tabla follows April rain, the flute follows green cover. A year ends on the home note if you protected the city, and on an unresolved note if not.`),
       bar,
+      visualizer({ height: 120 }),
       h('div', { class: 'row' }, playBtn, dl),
       nowText,
       h('details', {}, h('summary', {}, 'Describe every part in words'),

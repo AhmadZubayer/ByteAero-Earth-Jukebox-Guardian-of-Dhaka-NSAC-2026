@@ -9,18 +9,20 @@ description on screen and for screen readers.
 2. **The message.** Echo catches a broken message from an imagined 2050. Type your name for the ticket.
 3. **Earth Jukebox.** A globe shows NASA's global temperature from 1884 to 2022. Press *Play the
    time-lapse*: each sitar note is one year, higher and tenser as the world warms. Then *Fly to Dhaka*.
-4. **Sound Lab.** Move Heat, Rain and Green and listen to what each one does. Try the audio legend:
-   cool reference, hot reference, missing data.
-5. **Quick Ears.** Name three short clues: heat (rising sitar), rain (tabla), green (flute).
-6. **Beacon hunt.** A sound is hidden on a practice street. Find it by ear.
-7. **Six years in Dhaka:** 2000, 2010, 2020, 2024 (NASA data), then 2035 and 2050 (imagined).
-8. **Earth Record.** Your six years as one piece of music. Play it, or download it as a WAV file.
-9. **Ticket.** Print your Earth Listener Ticket.
+4. **Tutorial (about a minute).** One instruction at a time on a practice street: walk to the yellow
+   circle, follow the heat sound, ask Echo to scan, plant a tree, then *Start the game*. You can skip it.
+5. **Six years in Dhaka:** 2000, 2010, 2020, 2024 (NASA data), then 2035 and 2050 (imagined).
+6. **Earth Record.** Your six years as one piece of music. Play it, or download it as a WAV file.
+7. **Ticket.** Print your Earth Listener Ticket.
+
+**Optional: Sound Lab** (button on the title screen). Move Heat, Rain and Green and hear what each
+does, see the notes flow in the live visualiser, try the audio legend, then name three clues in Quick Ears.
 
 ## One round
 
 1. **Listen.** Echo warns of a heat wave. A rising sitar line plays from each hot spot.
-2. **Find.** Walk toward the sound. It gets louder, higher and faster as you get close.
+2. **Find.** Walk toward the sound. It gets louder, higher and faster as you get close, and (with the
+   heat view on) glowing rings rise from where it comes from.
    Press **Q** and Echo scans: notes sweep around you; the highest note points to the heat.
    Press **R** and Echo tells you the direction in words.
 3. **Protect.** Spend coins on fixes in and around the hot blocks:

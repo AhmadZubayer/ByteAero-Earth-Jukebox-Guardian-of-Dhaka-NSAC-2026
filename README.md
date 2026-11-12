@@ -5,7 +5,7 @@ for the NASA Space Apps Challenge 2026 challenge **The Earth Information Jukebox
 
 You play a child in Dhaka with **Echo**, a small satellite-drone. Every round a heat wave is coming.
 You find it **by listening**: a sitar line rises from the hottest part of the city, louder, higher and
-faster as you get close. Run there, plant trees, paint roofs white, dig ponds or open a cooling centre,
+faster as you get close, and glowing rings show where it comes from. Run there, plant trees, paint roofs white, dig ponds or open a cooling centre,
 then watch the wave arrive. Six years: 2000, 2010, 2020 and 2024 use NASA data; 2035 and 2050 are
 imagined and shaped by your choices. At the end your six years play back as one piece of music, the
 **Earth Record**, which you can download as a WAV file, and you get a printable ticket.

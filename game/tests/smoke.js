@@ -29,19 +29,27 @@ try {
   await page.waitForFunction('window.__phase === "globe"', null, { timeout: 60000 });
   check(true, 'globe intro opens');
   await page.getByRole('button', { name: 'Fly to Dhaka' }).click();
-  await page.waitForFunction('window.__phase === "lab"', null, { timeout: 60000 });
-  await page.getByRole('button', { name: 'Next: Quick Ears' }).click();
-  await page.getByRole('button', { name: 'Skip practice' }).click();
-  await page.getByRole('button', { name: 'Start listening' }).click();
-  // Walk forward with the keyboard, then check the player moved.
+  await page.waitForFunction('window.__phase === "tutorial"', null, { timeout: 60000 });
+  check(true, 'tutorial opens after the globe');
+  // Tutorial step 1: walk with the keyboard toward the circle.
+  await page.waitForSelector('text=Walk to the yellow circle', { timeout: 15000 });
   const before = await page.evaluate(() => window.__rt.player.pos.toArray());
   await page.keyboard.down('KeyW'); await page.waitForTimeout(1500); await page.keyboard.up('KeyW');
   const after = await page.evaluate(() => window.__rt.player.pos.toArray());
   check(Math.hypot(after[0] - before[0], after[2] - before[2]) > 2, `player moves with the keyboard (${Math.hypot(after[0] - before[0], after[2] - before[2]).toFixed(1)} m)`);
-  // Finish the beacon hunt by walking to it.
+  await page.evaluate(() => window.__rt.player.pos.set(0, 0, 14));
+  await page.waitForSelector('text=Walk toward it', { timeout: 10000 });
+  check(true, 'tutorial step 2: follow the heat sound');
   await page.evaluate(() => { const b = [...window.__lastConductor.beacons][0]; window.__rt.player.pos.set(b.x, 0, b.z + 1); });
-  await page.waitForFunction('window.__phase === "hunt-done"', null, { timeout: 10000 });
-  await page.locator('.dialogue button').first().click({ timeout: 10000 });
+  await page.waitForSelector('text=ask Echo to scan', { timeout: 10000 });
+  await page.keyboard.press('KeyQ');
+  await page.waitForSelector('text=Plant a tree', { timeout: 10000 });
+  check(true, 'tutorial step 3: scan with Q');
+  await page.evaluate(() => { const x = window.__rt.player.pos.x > 0 ? 6.6 : -6.6; window.__rt.player.pos.set(x * 0.85, 0, -13); });
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Digit1'); await page.keyboard.press('KeyE');
+  await page.getByRole('button', { name: 'Start the game' }).click({ timeout: 10000 });
+  check(true, 'tutorial step 4: plant a tree, then start the game');
   await page.waitForFunction('window.__round && window.__round.phase === "intro"', null, { timeout: 90000 });
   for (let k = 0; k < 8; k++) { const n = page.locator('.dialogue button').first(); if (await n.count() === 0) break; await n.click(); await page.waitForTimeout(150); }
   await page.waitForFunction('window.__round.phase === "play"', null, { timeout: 20000 });

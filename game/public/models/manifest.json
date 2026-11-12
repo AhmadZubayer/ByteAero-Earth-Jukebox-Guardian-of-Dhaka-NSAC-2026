@@ -7,19 +7,7 @@
  "bird": 13204,
  "lilypad": 9172,
  "solar": 12084,
- "bld-a": 18688,
- "bld-b": 22528,
- "bld-c": 21328,
- "bld-d": 23256,
- "bld-e": 26936,
- "bld-f": 26388,
- "bld-g": 31740,
- "bld-h": 34972,
  "bench": 7168,
  "bush": 7460,
- "car-taxi": 23772,
- "car-hatch": 22736,
- "streetlight": 8660,
- "watertower": 8844,
- "dumpster": 8844
+ "streetlight": 8660
 }

@@ -6,7 +6,7 @@ const browser = await launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
 const page = await ctx.newPage();
 const errors = collectErrors(page);
-await page.goto(base + '?scene=practice');
+await page.goto(base + '?scene=lab');
 await page.waitForFunction('window.__phase === "lab"', null, { timeout: 60000 });
 await page.getByRole('button', { name: 'Play the mix' }).click();
 await page.waitForTimeout(2500);
@@ -21,7 +21,8 @@ await page.waitForFunction('window.__phase === "quickears"');
 await page.waitForTimeout(500);
 await page.screenshot({ path: 'screenshots/phase2-quickears.png' });
 await page.getByRole('button', { name: 'Skip practice' }).click();
-await page.waitForFunction('window.__phase === "hunt"');
+await page.goto(base + '?scene=hunt');
+await page.waitForFunction('window.__phase === "hunt"', null, { timeout: 60000 });
 await page.getByRole('button', { name: 'Start listening' }).click();
 await page.waitForTimeout(500);
 

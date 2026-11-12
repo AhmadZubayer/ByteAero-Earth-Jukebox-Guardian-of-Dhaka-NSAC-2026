@@ -20,14 +20,9 @@ const MODELS = [
   ['bird', 'pp/bird.glb'],
   ['lilypad', 'pp/lilypad.glb'],
   ['solar', 'pp/solar-panel.glb'],
-  ...['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((l) => [`bld-${l.toLowerCase()}`, `kaykit/building_${l}.gltf`]),
   ['bench', 'kaykit/bench.gltf'],
   ['bush', 'kaykit/bush.gltf'],
-  ['car-taxi', 'kaykit/car_taxi.gltf'],
-  ['car-hatch', 'kaykit/car_hatchback.gltf'],
   ['streetlight', 'kaykit/streetlight.gltf'],
-  ['watertower', 'kaykit/watertower.gltf'],
-  ['dumpster', 'kaykit/dumpster.gltf'],
 ];
 
 const cli = resolve(import.meta.dir, '../node_modules/.bin/gltf-transform');

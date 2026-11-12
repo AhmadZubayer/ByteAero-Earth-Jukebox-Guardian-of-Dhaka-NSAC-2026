@@ -1,6 +1,14 @@
 // Four synthesised instruments plus a soft click. Each takes (ctx, destination, startTime, options)
 // so the same code plays live and renders offline for the WAV download.
 
+// Live note events for the visualiser (offline renders for the WAV do not emit them).
+export const noteListeners = new Set();
+function emit(ctx, kind, t, f = 0, gain = 0.5) {
+  if (!noteListeners.size || (typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext)) return;
+  const ms = Math.max(0, (t - ctx.currentTime) * 1000);
+  setTimeout(() => { for (const fn of noteListeners) fn({ kind, f, gain }); }, ms);
+}
+
 const noiseCache = new WeakMap();
 function noiseBuffer(ctx) {
   if (!noiseCache.has(ctx)) {
@@ -59,6 +67,7 @@ function ksBuffer(ctx, f, bright = 0.5, dur = 1.8) {
 
 // opts: f (Hz), gain, bright (0..1), bendTo (Hz, optional meend glide), bendTime (s)
 export function sitar(ctx, dest, t, { f = 293.66, gain = 0.4, bright = 0.5, bendTo = null, bendTime = 0.18, dur = 1.6 } = {}) {
+  emit(ctx, 'sitar', t, f, gain);
   const src = ctx.createBufferSource();
   src.buffer = ksBuffer(ctx, f, bright);
   if (bendTo) {
@@ -78,6 +87,7 @@ export function sitar(ctx, dest, t, { f = 293.66, gain = 0.4, bright = 0.5, bend
 
 // ---------- Bansuri-like flute: sine plus a little second harmonic, vibrato, breath noise ----------
 export function flute(ctx, dest, t, { f = 587.33, dur = 1.2, gain = 0.18, breath = 0.35, vibrato = 0.004 } = {}) {
+  emit(ctx, 'flute', t, f, gain);
   const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f, t);
   const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.setValueAtTime(f * 2, t);
   const g2 = ctx.createGain(); g2.gain.value = 0.12;
@@ -107,6 +117,7 @@ export function flute(ctx, dest, t, { f = 587.33, dur = 1.2, gain = 0.18, breath
 // ---------- Tabla-like drum ----------
 // stroke: 'dha' (both), 'ge' (bass with pitch glide), 'na' (ringing treble), 'ti' (dry treble), 'ka' (slap)
 export function tabla(ctx, dest, t, { stroke = 'na', gain = 0.5, pitch = 1 } = {}) {
+  emit(ctx, 'tabla', t, stroke === 'ge' || stroke === 'dha' ? 100 : 520, gain);
   const treble = (ringing) => {
     const o = ctx.createOscillator(); o.type = 'sine';
     const f = 520 * pitch;
@@ -144,6 +155,7 @@ export function tabla(ctx, dest, t, { stroke = 'na', gain = 0.5, pitch = 1 } = {
 // One cycle of Pa (or Ma) – Sa' – Sa' – Sa. detune (cents) puts the fifth out of tune.
 export function tanpuraCycle(ctx, dest, t, { sa = 146.83, fifth = 7, detune = 0, cycle = 4.8, gain = 0.12, brightness = 0.5 } = {}) {
   const strings = [sa * 2 ** ((fifth - 12) / 12) * 2 ** (detune / 1200), sa * 2, sa * 2, sa];
+  strings.forEach((f, i) => emit(ctx, 'drone', t + (i * cycle) / 4, f, gain));
   strings.forEach((f, i) => {
     const st = t + (i * cycle) / 4;
     const len = cycle * 1.15;
@@ -168,6 +180,7 @@ export function tanpuraCycle(ctx, dest, t, { sa = 146.83, fifth = 7, detune = 0,
 
 // ---------- Missing data: a rest with a soft click ----------
 export function click(ctx, dest, t, { gain = 0.12 } = {}) {
+  emit(ctx, 'click', t, 0, gain);
   const n = ctx.createBufferSource(); n.buffer = noiseBuffer(ctx);
   const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2000; bp.Q.value = 3;
   const g = ctx.createGain(); env(g, t, 0.0005, gain, 0.012);

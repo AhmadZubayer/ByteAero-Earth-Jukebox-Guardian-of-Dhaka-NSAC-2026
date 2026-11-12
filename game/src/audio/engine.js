@@ -52,6 +52,9 @@ export class AudioEngine {
       this.meterL.fftSize = this.meterR.fftSize = 2048;
       this.bus.comp.connect(this.split);
       this.split.connect(this.meterL, 0); this.split.connect(this.meterR, 1);
+      this.spectrum = this.ctx.createAnalyser();
+      this.spectrum.fftSize = 2048; this.spectrum.smoothingTimeConstant = 0.8;
+      this.bus.comp.connect(this.spectrum);
     }
     if (this.ctx.state === 'suspended') { try { await this.ctx.resume(); } catch { /* blocked */ } }
     return this.ctx.state === 'running';

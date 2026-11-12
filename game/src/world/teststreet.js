@@ -4,9 +4,9 @@ import { loadModels } from '../core/assets.js';
 import { InstancedModel, matrixFrom } from './instanced.js';
 import { groundTextures, plane } from './ground.js';
 import { makeRickshaw, makeTeaStall } from './props.js';
+import { DhakaBuildings } from './dhakaBuildings.js';
 
-const BUILDINGS = ['bld-a', 'bld-b', 'bld-c', 'bld-d', 'bld-e', 'bld-f', 'bld-g', 'bld-h'];
-export const STREET_MODELS = [...BUILDINGS, 'palm', 'streetlight', 'bench', 'car-taxi'];
+export const STREET_MODELS = ['palm', 'streetlight', 'bench'];
 
 export class TestStreet {
   constructor() {
@@ -28,18 +28,16 @@ export class TestStreet {
     }
     const grass = plane(160, 160, tex.grass, 30, 30); grass.position.y = -0.02; g.add(grass);
 
-    const scale = 5;
-    const inst = Object.fromEntries(BUILDINGS.map((b) => [b, new InstancedModel(this.models[b], 6)]));
-    for (const im of Object.values(inst)) g.add(im.group);
+    const blds = new DhakaBuildings();
     let k = 0;
     for (const s of [-1, 1]) {
       for (let z = -36; z <= 36; z += 12) {
-        const name = BUILDINGS[k++ % BUILDINGS.length];
         const x = s * 14;
-        inst[name].add(matrixFrom(x, 0, z, s > 0 ? -Math.PI / 2 : Math.PI / 2, scale));
-        world.addBox(x, z, 10, 10, 30);
+        blds.add(x, z, 10, 11, 3 + ((k * 5) % 5), 900 + k++);
+        world.addBox(x, z, 10, 11, 30);
       }
     }
+    blds.build(g);
     const palms = new InstancedModel(this.models.palm, 20); g.add(palms.group);
     const lights = new InstancedModel(this.models.streetlight, 20); g.add(lights.group);
     for (let z = -40; z <= 40; z += 10) {

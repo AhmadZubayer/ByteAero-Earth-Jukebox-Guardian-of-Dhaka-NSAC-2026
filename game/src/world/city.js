@@ -9,14 +9,13 @@ import { groundTextures, plane } from './ground.js';
 import { makeRickshaw, makeTeaStall, makeKite } from './props.js';
 import { Animated } from '../player/character.js';
 import { Effects } from './effects.js';
+import { DhakaBuildings } from './dhakaBuildings.js';
 import { COLS, ROWS, colRow } from '../game/heat.js';
 import { DISTRICT_NAMES, layoutDistrict } from '../game/rounds.js';
 
 export const PITCH = 30, BLOCK = 23, HALF = (COLS * PITCH) / 2;
-const BUILDINGS = ['bld-a', 'bld-b', 'bld-c', 'bld-d', 'bld-e', 'bld-f', 'bld-g', 'bld-h'];
-export const CITY_MODELS = [...BUILDINGS, 'palm', 'tree-round', 'tree-tall', 'streetlight', 'bench', 'bush', 'car-taxi', 'watertower', 'lilypad', 'bird', 'person-a', 'person-c', 'solar'];
+export const CITY_MODELS = ['palm', 'tree-round', 'tree-tall', 'streetlight', 'bench', 'bush', 'lilypad', 'bird', 'person-a', 'person-c', 'solar'];
 const CORNER = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
-const BSCALE = 4; // KayKit buildings are 2 units wide -> 8 m
 
 export function districtCentre(i) {
   const [c, r] = colRow(i);
@@ -43,25 +42,10 @@ export function heatColor(v, out = new THREE.Color()) {
 }
 
 let models = null;
-const roofHeights = {};
 export const cityModels = () => models;
 export async function loadCity() {
   if (!models) {
     models = await loadModels(CITY_MODELS);
-    // Find each building's flat roof height by casting rays down at a few points (the water tank sits on one corner).
-    const ray = new THREE.Raycaster();
-    for (const b of BUILDINGS) {
-      const scene = models[b].scene;
-      scene.updateMatrixWorld(true);
-      const hits = [];
-      for (const [x, z] of [[0.3, 0.3], [-0.3, 0.3], [0.3, -0.3], [-0.3, -0.3], [0, 0]]) {
-        ray.set(new THREE.Vector3(x, 10, z), new THREE.Vector3(0, -1, 0));
-        const hit = ray.intersectObject(scene, true)[0];
-        if (hit) hits.push(hit.point.y);
-      }
-      hits.sort((a, b2) => a - b2);
-      roofHeights[b] = hits[Math.floor(hits.length / 2)] || 1.6;
-    }
   }
   return models;
 }
@@ -94,7 +78,7 @@ export class City {
 
     // Streets: one asphalt base, kerbed blocks on top, dashed centre lines.
     const base = plane(COLS * PITCH + 40, ROWS * PITCH + 40, tex.asphalt, 14, 14, '#9a9da3');
-    base.material.map.repeat.set(0, 0); // plain asphalt without lane marks at this scale
+    base.material.map = null; base.material.color.set('#6c6f74'); // plain asphalt; lane marks are added below
     g.add(base);
     const outskirts = plane(700, 700, tex.grass, 90, 90, '#b7c79a'); outskirts.position.y = -0.05; g.add(outskirts);
     // The river along the south-west, as in the satellite images.
@@ -120,13 +104,13 @@ export class City {
     blocks.receiveShadow = true; grass.receiveShadow = true;
     g.add(blocks, grass);
 
-    const inst = Object.fromEntries(BUILDINGS.map((b) => [b, new InstancedModel(models[b], 40)]));
-    const trees = { palm: new InstancedModel(models.palm, 160), 'tree-round': new InstancedModel(models['tree-round'], 160), 'tree-tall': new InstancedModel(models['tree-tall'], 120) };
+    const blds = new DhakaBuildings();
+    const trees = { palm: new InstancedModel(models.palm, 140), 'tree-round': new InstancedModel(models['tree-round'], 140), 'tree-tall': new InstancedModel(models['tree-tall'], 140) };
     const lights = new InstancedModel(models.streetlight, 80);
     const benches = new InstancedModel(models.bench, 60);
     const bushes = new InstancedModel(models.bush, 120);
     this.trees = trees;
-    for (const im of [...Object.values(inst), ...Object.values(trees), lights, benches, bushes]) g.add(im.group);
+    for (const im of [...Object.values(trees), lights, benches, bushes]) g.add(im.group);
     this.roofMat = new THREE.MeshStandardMaterial({ color: '#f7f7f2', roughness: 0.5, emissive: '#fffdf0', emissiveIntensity: 0.12 });
     this.roofGeo = new THREE.BoxGeometry(1, 0.12, 1);
 
@@ -145,12 +129,11 @@ export class City {
       layout.buildingCorners.forEach((k, n) => {
         const [sx, sz] = CORNER[k];
         const bx = cx + sx * 6.6, bz = cz + sz * 6.6;
-        const type = BUILDINGS[(i * 3 + n * 5) % BUILDINGS.length];
-        const rot = Math.round(((i + n) % 4)) * (Math.PI / 2);
-        inst[type].add(matrixFrom(bx, 0.16, bz, rot, BSCALE));
-        const h = roofHeights[type] * BSCALE + 0.16;
+        // Taller where the NASA NDVI shows less green (more built-up).
+        const floors = Math.max(3, Math.min(10, Math.round(3 + (0.6 - ndvi) * 12 + ((i * 7 + n * 3) % 4))));
+        const h = blds.add(bx, bz, 8.2, 8.2, floors, i * 4 + n + 1);
         world.addBox(bx, bz, 8.2, 8.2, h + 4);
-        d.buildings.push({ x: bx, z: bz, h, type, white: false });
+        d.buildings.push({ x: bx, z: bz, h, type: 'dhaka', white: false });
       });
       for (const k of layout.openCorners) {
         const [sx, sz] = CORNER[k];
@@ -181,16 +164,18 @@ export class City {
     grass.count = ng; grass.instanceMatrix.needsUpdate = true;
 
     // A ring of buildings beyond the edge so the city does not look like an island (no collisions).
-    const ring = Object.fromEntries(BUILDINGS.map((b) => [b, new InstancedModel(models[b], 30, { castShadow: false })]));
-    for (const im of Object.values(ring)) g.add(im.group);
+    const ring = new DhakaBuildings({ castShadow: false });
     let rk = 0;
     for (let a = -HALF - 22; a <= HALF + 22; a += 11) {
       for (const [x, z, r] of [[a, -HALF - 26, 0], [a, HALF + 26, Math.PI], [-HALF - 26, a, Math.PI / 2], [HALF + 26, a, -Math.PI / 2]]) {
         if (x < -100 && z > 60) continue; // leave the river bank open
-        const type = BUILDINGS[rk++ % BUILDINGS.length];
-        ring[type].add(matrixFrom(x, 0, z, r, BSCALE * 1.2, BSCALE * (1.2 + ((rk * 7) % 5) * 0.25)));
+        void r;
+        ring.add(x, z, 9.5, 9.5, 5 + ((rk * 7) % 6), 500 + rk++);
       }
     }
+    ring.build(g);
+    blds.build(g);
+    this.blds = [blds, ring];
     world.setBounds(-HALF - 6, HALF + 6, -HALF - 6, HALF + 6);
 
     // Tea stall in the central district, rickshaws on the roads, kites over rooftops.
@@ -250,7 +235,7 @@ export class City {
   addTree(x, z, kind, scale = 1, animate = true) {
     const names = ['palm', 'tree-round', 'tree-tall'];
     const name = names[kind % 3];
-    const s = (name === 'palm' ? 2.8 : name === 'tree-round' ? 1.15 : 1.25) * scale;
+    const s = (name === 'palm' ? 2.8 : name === 'tree-round' ? 1.25 : 1.35) * scale;
     const im = this.trees[name];
     const rot = (x * 13 + z * 7) % 6.28;
     const idx = im.add(matrixFrom(x, 0.16, z, rot, animate ? 0.01 : s));

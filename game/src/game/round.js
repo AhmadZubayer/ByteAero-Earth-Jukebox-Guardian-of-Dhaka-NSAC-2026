@@ -10,6 +10,7 @@ import { sitar, tabla } from '../audio/instruments.js';
 import { Hud } from '../ui/hud.js';
 import { say, directionWords, relAngle, vibrate } from '../ui/announce.js';
 import { dialogue, clear } from '../ui/dom.js';
+import { SoundWaves } from '../world/soundwaves.js';
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -108,6 +109,14 @@ export class Round {
     this.hud();
     await audio.unlock();
     this.cond = new Conductor(audio);
+    // See the heat calls: rings and sparks from each hot spot (not in the hidden-heat year, and
+    // only with the heat view on, so playing by ear stays a real challenge).
+    this.waves = new SoundWaves(this.rt.stage.scene);
+    this.waves.enabled = !this.settings.reducedMotion;
+    this.cond.onBeaconNote = (b, f, p) => {
+      if (!this.settings.heatView || (this.def.hidden && !this.found.has(b.district))) return;
+      this.waves.spawn(b.x, b.z, f, p);
+    };
     this.refresh();
     const greenest = this.cells.map((c, i) => [c.ndvi ?? 0, i]).sort((a, b) => b[0] - a[0])[0][1];
     const gc = districtCentre(greenest);
@@ -271,6 +280,7 @@ export class Round {
 
   update(dt) {
     this.city?.update(dt);
+    this.waves?.update(dt);
     if (this.phase !== 'play') return;
     const rt = this.rt, p = rt.player.pos;
     if (this.cond) this.cond.player = { x: p.x, z: p.z };
@@ -397,6 +407,7 @@ export class Round {
 
   dispose() {
     this.cond?.stop();
+    this.waves?.clear();
     this.city?.dispose();
     if (this.ring) this.rt.stage.scene.remove(this.ring);
     const i = this.rt?.input;

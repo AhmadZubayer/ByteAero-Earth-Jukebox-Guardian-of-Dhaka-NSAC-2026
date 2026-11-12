@@ -147,6 +147,7 @@ export class Conductor {
           f, gain: (0.55 + p * 0.45) * b.strength, bright: 0.5 + p * 0.4,
           bendTo: last ? f * 2 ** (1 / 12) : null, dur: last ? 1.4 : 0.8,
         });
+        if (this.onBeaconNote) { const at = b.next + k * gap; setTimeout(() => this.onBeaconNote?.(b, f, p), Math.max(0, (at - this.e.now) * 1000)); }
       }
       b.next += notes * gap + (2.4 - p * 1.6);
     }

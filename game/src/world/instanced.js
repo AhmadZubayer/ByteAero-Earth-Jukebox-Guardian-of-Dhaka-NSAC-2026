@@ -2,6 +2,21 @@
 // a handful of draw calls.
 import * as THREE from 'three';
 
+// Compressed models store positions and normals as quantized integers. Baking a transform into
+// them would clip values outside -1..1, so copy every attribute to plain floats first.
+function toFloat(src) {
+  const geo = new THREE.BufferGeometry();
+  for (const [name, a] of Object.entries(src.attributes)) {
+    const n = a.count, k = a.itemSize, out = new Float32Array(n * k);
+    const get = [a.getX, a.getY, a.getZ, a.getW];
+    for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) out[i * k + j] = get[j].call(a, i);
+    geo.setAttribute(name, new THREE.BufferAttribute(out, k));
+  }
+  if (src.index) geo.setIndex(Array.from(src.index.array));
+  for (const gr of src.groups) geo.addGroup(gr.start, gr.count, gr.materialIndex);
+  return geo;
+}
+
 export class InstancedModel {
   constructor(gltf, capacity, { castShadow = true, receiveShadow = true } = {}) {
     this.parts = [];
@@ -12,7 +27,7 @@ export class InstancedModel {
     const box = new THREE.Box3();
     gltf.scene.traverse((o) => {
       if (!o.isMesh || o.isSkinnedMesh) return;
-      const geo = o.geometry.clone();
+      const geo = toFloat(o.geometry);
       geo.applyMatrix4(o.matrixWorld);
       geo.computeBoundingBox();
       box.union(geo.boundingBox);

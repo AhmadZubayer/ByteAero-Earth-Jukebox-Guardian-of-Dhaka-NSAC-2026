@@ -4,6 +4,7 @@ import { say, directionWords, vibrate, relAngle } from '../ui/announce.js';
 import { audio } from '../audio/engine.js';
 import { Conductor, describeMusic, playClip, MAP } from '../audio/sonify.js';
 import { sitar } from '../audio/instruments.js';
+import { visualizer } from '../ui/visualizer.js';
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -55,6 +56,7 @@ export function soundLab(rt) {
       slider('lab-heat', 'Heat', 26, 37, 0.5, ' °C', 'heat', (v) => v.toFixed(1)),
       slider('lab-rain', 'Rain', 0, 10, 0.5, ' mm/day', 'rain', (v) => v.toFixed(1)),
       slider('lab-green', 'Green', 0.1, 0.7, 0.05, ' NDVI', 'green', (v) => v.toFixed(2)),
+      visualizer({ height: 130 }),
       desc,
       h('div', { class: 'row' }, toggle),
       h('h3', {}, 'Audio legend'),
@@ -113,6 +115,7 @@ export function quickEars(settings) {
       h('h2', { id: 'qe-h' }, 'Name that sound'),
       h('p', {}, `Listen to each short clue and choose heat, rain or green space. Get ${need} right to finish.`),
       clueText,
+      visualizer({ height: 110 }),
       h('div', { class: 'row' }, button('Play the clue again', playIt, 'secondary', { 'data-autofocus': true })),
       answers,
       status,

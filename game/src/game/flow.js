@@ -1,19 +1,18 @@
 // Game flow: title -> Echo's message -> Earth Jukebox globe -> Sound Lab -> Quick Ears -> beacon hunt
 // -> six Dhaka rounds -> Earth Record -> ticket.
-import { h, show, button, clear, dialogue } from '../ui/dom.js';
+import { h, show, button, clear } from '../ui/dom.js';
 import { say } from '../ui/announce.js';
 import { audio } from '../audio/engine.js';
 import { loadData } from '../data/nasa.js';
 import { loadProgress, saveProgress, clearProgress } from '../core/save.js';
 import { settingsPanel } from '../ui/settings.js';
 import { reportScreen, choiceScreen } from '../ui/report.js';
-import { legendButtons, soundLab, quickEars, beaconHunt } from './practice.js';
+import { legendButtons, soundLab, quickEars } from './practice.js';
 import { ROUNDS } from './rounds.js';
 import { N, starsFor, LOSE_BELOW } from './heat.js';
 
 const params = new URLSearchParams(location.search);
 let rt = null, data = null, settings = null;
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function loadingScreen(text) {
   const bar = h('span');
@@ -80,7 +79,8 @@ function titleScreen() {
       h('p', {}, 'A heat wave is coming. Listen for it, find it, and cool the city, with real NASA Earth data turned into music.'),
       h('div', { class: 'row', style: 'justify-content:center' },
         button(canContinue ? 'New game' : 'Start', () => resolve({ mode: 'new' }), '', { 'data-autofocus': true }),
-        canContinue ? button(`Continue (${saved.roundIndex < ROUNDS.length ? ROUNDS[saved.roundIndex].year : 'Earth Record'})`, () => resolve({ mode: 'continue', state: saved }), 'secondary') : null),
+        canContinue ? button(`Continue (${saved.roundIndex < ROUNDS.length ? ROUNDS[saved.roundIndex].year : 'Earth Record'})`, () => resolve({ mode: 'continue', state: saved }), 'secondary') : null,
+        button('Sound Lab (practice sounds)', () => resolve({ mode: 'lab' }), 'secondary')),
       h('details', { class: 'note', style: 'text-align:left' }, h('summary', {}, 'How to play'),
         h('p', {}, 'Each year a heat wave is coming to Dhaka. Listen: a rising sitar line comes from the hottest blocks, louder, higher and faster as you get close. Walk there and spend coins on trees, white roofs, ponds and cooling centres before the wave hits.'),
         h('p', {}, 'Keyboard: W A S D or arrows to move, Shift to run, Q for Echo\'s sound scan, R for directions in words, 1 to 4 to choose a fix, E to place it, F to bring the wave, Esc for the menu. Phone: joystick on the left, buttons on the right, fixes along the bottom.')),
@@ -176,23 +176,27 @@ async function ending(state) {
   await ticket(state, badgesFor(state), settings);
 }
 
+// The short hands-on tutorial on the practice street (replaces the old long practice chain).
 async function practice(state) {
   if (settings.textOnly) return;
   const { TestStreet } = await import('../world/teststreet.js');
+  const { tutorial } = await import('./tutorial.js');
   const street = new TestStreet();
   await street.load();
   rt.setScene(street);
-  window.__phase = 'lab';
-  await soundLab(rt);
-  window.__phase = 'quickears';
-  await quickEars(settings);
-  window.__phase = 'hunt';
-  await beaconHunt(rt, settings);
-  window.__phase = 'hunt-done';
-  await wait(1200);
-  await dialogue({ text: 'You can find a sound by ear! Now let us fly to Dhaka in the year 2000.', options: [{ label: 'Go to Dhaka', value: true }] });
+  window.__phase = 'tutorial';
+  await tutorial(rt, settings);
+  window.__phase = 'tutorial-done';
   state.practiced = true;
   saveProgress(state);
+}
+
+// Optional sound practice from the title screen: Sound Lab, then Quick Ears.
+async function soundPractice() {
+  window.__phase = 'lab';
+  await soundLab(null);
+  window.__phase = 'quickears';
+  await quickEars(settings);
 }
 
 export async function runGame(s) {
@@ -202,7 +206,12 @@ export async function runGame(s) {
   data = await loadData();
   const scene = params.get('scene');
   if (scene) return devScene(scene);
-  const choice = await titleScreen();
+  let choice = await titleScreen();
+  while (choice.mode === 'lab') {
+    await audio.unlock();
+    await soundPractice();
+    choice = await titleScreen();
+  }
   await audio.unlock();
   const state = choice.mode === 'continue' ? choice.state : newState();
   window.__state = state;
@@ -253,7 +262,15 @@ async function devScene(scene) {
     window.__ready = true;
     return;
   }
-  if (scene === 'practice') { window.__ready = true; await practice(state); return; }
+  if (scene === 'practice' || scene === 'tutorial') { window.__ready = true; await practice(state); return; }
+  if (scene === 'lab') { window.__ready = true; await soundPractice(); return; }
+  if (scene === 'hunt') { // the hidden-beacon hunt, kept for the ear-only test
+    const { TestStreet } = await import('../world/teststreet.js');
+    const { beaconHunt } = await import('./practice.js');
+    const street = new TestStreet(); await street.load(); rt.setScene(street);
+    window.__ready = true; window.__phase = 'hunt';
+    await beaconHunt(rt, settings); window.__phase = 'hunt-done'; return;
+  }
   if (scene === 'globe') { const { globeIntro } = await import('./globe-scene.js'); window.__ready = true; window.__phase = 'globe'; await globeIntro(rt, data, settings); window.__phase = 'globe-done'; return; }
   if (scene === 'round') {
     const year = +params.get('year') || 2000;

@@ -16,20 +16,20 @@ The compressed copies live in `game/public/models/`.
 | `bird.glb` | Bird | Quaternius | https://poly.pizza/m/gYYC0gYMnw | CC0 1.0 |
 | `lilypad.glb` | Lilypad | Quaternius | https://poly.pizza/m/TI6ukUlsLh | CC0 1.0 |
 | `solar.glb` | Solar Panel | Quaternius | https://poly.pizza/m/ah89Y79JdT | CC0 1.0 |
-| `bld-a.glb` … `bld-h.glb` | building_A … building_H | Kay Lousberg (KayKit City Builder Bits 1.0) | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 | CC0 1.0 |
-| `bench.glb`, `bush.glb`, `car-taxi.glb`, `car-hatch.glb`, `streetlight.glb`, `watertower.glb`, `dumpster.glb` | bench, bush, car_taxi, car_hatchback, streetlight, watertower, dumpster | Kay Lousberg (KayKit City Builder Bits 1.0) | same as above | CC0 1.0 |
+| `bench.glb`, `bush.glb`, `streetlight.glb` | bench, bush, streetlight | Kay Lousberg (KayKit City Builder Bits 1.0) | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 | CC0 1.0 |
 
-Built in code (no outside file): Echo the drone, the cycle rickshaws, the tea stall, kites,
+Built in code (no outside file): the Dhaka apartment buildings (walls, balconies, shop fronts and
+signboards painted on canvas, black rooftop water tanks), Echo the drone, the cycle rickshaws, the tea stall, kites,
 ponds, cooling centres, white roofs, the globe, all ground textures.
 
 Notes on sourcing:
 
-- Kenney's website refuses automated downloads, and Kenney's City Kit is not mirrored on GitHub
-  by Kenney, so the KayKit city pack (the plan's named fallback, also CC0) supplies the buildings.
+- Kenney's website refuses automated downloads, so KayKit (the plan's named fallback, CC0) supplies
+  street furniture. The KayKit buildings were later replaced with Dhaka-style buildings made in code.
 - The Quaternius "Ultimate Animated Character" Google Drive folder hit its download quota, so the
   same author's single-character uploads on Poly Pizza were used.
 - No free rickshaw, tea stall or rooftop water tank model of the right style was found on
-  Poly Pizza; the rickshaw and tea stall are built from shapes, the water tank comes from KayKit.
+  Poly Pizza; the rickshaw, tea stall and water tanks are built from shapes.
 
 ## Font
 
