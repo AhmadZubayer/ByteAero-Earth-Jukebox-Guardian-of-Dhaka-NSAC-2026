@@ -25,7 +25,8 @@ export class Hud {
     $('hud').querySelector('.mission')?.remove();
     this.steps = {};
     const stepList = h('ol', { class: 'mission-steps' }, ['find', 'protect', 'wave'].map((k) => (this.steps[k] = h('li', { 'data-state': 'todo' }))));
-    this.nextEl = h('p', { class: 'mission-next', 'aria-live': 'polite' });
+    this.actionEl = h('p', { class: 'mission-action', 'aria-live': 'polite' });
+    this.nextEl = h('p', { class: 'mission-next' });
     this.whereEl = h('p', { class: 'mission-where', 'aria-hidden': 'true' });
     this.hereEl = h('p', { class: 'mission-here', 'aria-hidden': 'true' });
     this.tipEl = h('div', { class: 'mission-tip', hidden: true });
@@ -34,7 +35,7 @@ export class Hud {
     this.scoreFill = h('span', { class: 'score-fill' });
     const marks = [50, 75, 90].map((pc, k) => h('i', { class: 'score-mark', style: `left:${pc}%`, title: `${k + 1} star${k ? 's' : ''}` }, '★'.repeat(k + 1)));
     this.scoreEl = h('div', { class: 'mission-score' }, this.scoreText, h('div', { class: 'score-bar', 'aria-hidden': 'true' }, this.scoreFill, marks));
-    this.mission = h('section', { class: 'mission', 'aria-label': 'Your mission' }, this.kicker, stepList, this.scoreEl, this.nextEl, this.whereEl, this.hereEl, this.tipEl);
+    this.mission = h('section', { class: 'mission', 'aria-label': 'Your mission' }, this.kicker, stepList, this.scoreEl, this.actionEl, this.whereEl, this.nextEl, this.hereEl, this.tipEl);
     $('hud').querySelector('.block-label')?.remove();
     $('hud').querySelector('.celebrate')?.remove();
     this.labelEl = h('div', { class: 'block-label', 'aria-hidden': 'true', hidden: true });
@@ -109,6 +110,23 @@ export class Hud {
     this.celTimer = setTimeout(() => { this.celebrateEl.hidden = true; }, 2200);
   }
 
+  // The one thing to do now, in a few words, with the key to press shown as a badge.
+  action(text, key = null) {
+    const k = key ? `<kbd>${key}</kbd> ` : '';
+    const html = `<span class="act-arrow" aria-hidden="true">👉</span> ${k}${text}`;
+    if (this.actionEl._h !== html) { this.actionEl.innerHTML = html; this.actionEl._h = html; }
+  }
+
+  // Make the button to press glow: a fix key, 'place', 'wave' or null.
+  highlight(what) {
+    if (this._hl === what) return;
+    this._hl = what;
+    for (const [k, b] of Object.entries(this.fixButtons)) b.classList.toggle('glow', k === what);
+    this.placeBtn.classList.toggle('glow', what === 'place');
+    document.getElementById('hud-wave').classList.toggle('glow', what === 'wave');
+    document.querySelectorAll('#touch [data-action="act"]').forEach((b) => b.classList.toggle('glow', what === 'place'));
+  }
+
   next(text) { if (this.nextEl.textContent !== text) this.nextEl.textContent = text; }
   where(text) { this.whereEl.textContent = text || ''; }
 
@@ -120,9 +138,14 @@ export class Hud {
     this.tipTimer = setTimeout(() => { this.tipEl.hidden = true; }, 14000);
   }
 
-  compass(angle, visible) {
+  compass(angle, visible, text = '', state = '') {
     const c = $('hud-compass');
     c.hidden = !visible;
-    if (visible) c.firstElementChild.style.transform = `rotate(${angle}rad)`;
+    if (!visible) return;
+    c.dataset.state = state;
+    c.firstElementChild.style.transform = `rotate(${angle}rad)`;
+    let lab = c.querySelector('b');
+    if (!lab) { lab = document.createElement('b'); c.append(lab); }
+    if (lab.textContent !== text) lab.textContent = text;
   }
 }

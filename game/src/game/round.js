@@ -165,6 +165,9 @@ export class Round {
     this.h.show(false);
     this.h.district('');
     this.h.compass(0, false);
+    this.h.highlight(null);
+    if (this.arrow) this.arrow.visible = false;
+    this.city.showTreeSpots(null);
     onFact(null);
     return result;
   }
@@ -238,7 +241,7 @@ export class Round {
   // Where the chosen fix would go now (aimed point = in front of the child, or a clicked point).
   aim(point) {
     const p = this.rt.player.pos;
-    const a = point || (this.selected === 'tree' ? this.rt.frontPoint(1.6) : { x: p.x, z: p.z });
+    const a = point || { x: p.x, z: p.z };
     return a;
   }
 
@@ -256,7 +259,7 @@ export class Round {
     if (di < 0 || !target || !plotFree(this.layouts, di, this.selected, this.fixes)) {
       const name = di >= 0 ? this.city.districts[di].name : 'here';
       say(this.selected === 'roof' ? `No roof to paint ${di >= 0 ? `in ${name}` : 'here'}. Stand next to a building.`
-        : this.selected === 'tree' ? (di < 0 ? 'Walk into a city block first.' : `${name} has no room for more trees. Try a white roof, or another block.`)
+        : this.selected === 'tree' ? (di < 0 ? 'Walk into a city block first.' : this.city.districts[di].treePlots.some((q) => !q.used) && plotFree(this.layouts, di, 'tree', this.fixes) ? 'Trees go on the green circles. Follow the arrow to the next one, then press E.' : `${name} has no room for more trees. Try a white roof, or another block.`)
         : (di < 0 ? 'Walk into a city block first.' : `${name}'s middle square is already used. Try another block.`));
       return;
     }
@@ -352,6 +355,7 @@ export class Round {
 
   update(dt) {
     this.city?.update(dt);
+    if (this.city && this.rt) this.city.updateOcclusion(this.rt.stage.camera.position, this.rt.player.pos);
     this.waves?.update(dt);
     if (this.phase !== 'play') return;
     const rt = this.rt, p = rt.player.pos;
@@ -375,8 +379,7 @@ export class Round {
     rt.echo.setMood(prox);
     if (nearest && nearest.d < 22 && this.settings.vibration && (!this.lastBuzz || performance.now() - this.lastBuzz > 1400)) { vibrate(35); this.lastBuzz = performance.now(); }
     // Compass toward the nearest hidden heat (visual help only when the heat view is on).
-    if (nearest) this.h.compass(relAngle(rt.follow.yaw, nearest.c.x - p.x, nearest.c.z - p.z), this.settings.heatView && !this.def.hidden);
-    else this.h.compass(0, false);
+    this.updateArrow(dt);
     // District readout.
     const di = districtAt(p.x, p.z);
     if (di !== this.lastDistrict) {
@@ -456,7 +459,11 @@ export class Round {
   spotFor(type, i) {
     const p = this.rt.player.pos, d = this.city.districts[i];
     if (type === 'pond' || type === 'centre') return { x: d.big.x + 3, z: d.big.z, at: { x: d.big.x, z: d.big.z } };
-    if (type === 'tree') { const q = d.treePlots.find((t) => !t.used); return q ? { x: q.x, z: q.z, at: q } : null; }
+    if (type === 'tree') {
+      let q = null, bd = 1e9;
+      for (const t of d.treePlots) { if (t.used) continue; const dd = Math.hypot(t.x - p.x, t.z - p.z); if (dd < bd) { bd = dd; q = t; } }
+      return q ? { x: q.x, z: q.z, at: q } : null;
+    }
     const b = d.buildings.find((q) => !q.white);
     if (!b) return null;
     const sx = Math.sign(p.x - b.x) || 1, sz = Math.sign(p.z - b.z) || 1, along = Math.abs(p.x - b.x) > Math.abs(p.z - b.z);
@@ -494,6 +501,7 @@ export class Round {
   guide() {
     if (this.phase !== 'play' || !this.h) return;
     this.labelFor = null;
+    this.goal = null;
     const safeNow = this.forecast.districts.filter((x) => x.safe).length;
     this.h.setScore(safeNow, N);
     const p = this.rt.player.pos, yaw = this.rt.follow.yaw;
@@ -501,50 +509,105 @@ export class Round {
     const elapsed = (performance.now() - this.startTime) / 1000;
     const words = (x, z) => directionWords(relAngle(yaw, x - p.x, z - p.z), Math.hypot(x - p.x, z - p.z));
     const showGuide = this.settings.guide !== false;
+    const touch = this.rt.input.isTouch;
+    const placeKey = touch ? 'Place' : 'E';
+    this.city.showTreeSpots(null);
+    // 1. Find the heat.
     if (unfound.length) {
       this.h.setSteps(this.def.year, { find: [`Find the heat (${this.found.size}/${this.spots.length})`, 'now'], protect: ['Protect the blocks around it', 'todo'], wave: ['Get ready for the heat wave', 'todo'] });
       let best = null;
       for (const s of unfound) { const c = districtCentre(s); const d = Math.hypot(c.x - p.x, c.z - p.z); if (!best || d < best.d) best = { c, d }; }
-      if (this.def.hidden) {
-        this.h.next('Find the hidden heat by ear. Walk where the sitar gets louder and faster. Press Q to scan.');
-        this.h.where(this.usedHint ? `Heat: ${words(best.c.x, best.c.z)}` : 'Tip: louder and faster = closer. Still lost? Press R.');
-        this.guideTarget.hide();
-      } else {
-        const marked = showGuide && (elapsed > 20 || this.usedHint);
-        this.h.next(marked ? 'Echo marked the hot spot with a yellow light. Go there!' : `Find the heat: follow the rising sitar${this.settings.heatView ? ' and the orange rings' : ''}.`);
-        this.h.where(this.settings.heatView || marked ? `Heat: ${words(best.c.x, best.c.z)}` : 'Listen: louder and faster = closer. Press R for directions.');
-        if (marked) { if (!this.markedSaid) { this.markedSaid = true; say('Echo marked the hot spot with a yellow light.'); } this.guideTarget.show(best.c.x, best.c.z, 2.2); } else this.guideTarget.hide();
+      this.h.highlight(null);
+      if (this.def.hidden && !this.usedHint) {
+        this.h.action('Find the hidden heat by ear: walk where the sitar gets louder.');
+        this.h.next('This year there is no arrow or light. Press Q to scan, or R if you are lost.');
+        this.h.where(''); this.guideTarget.hide();
+        return;
       }
+      const marked = showGuide && (elapsed > 20 || this.usedHint || this.def.hidden);
+      this.h.action('Follow the arrow to the hot spot.');
+      this.h.next(`Listen too: the rising sitar gets louder and faster as you get close${this.settings.heatView ? ', and orange rings rise from it' : ''}.`);
+      this.h.where(`Hot spot: ${words(best.c.x, best.c.z)}`);
+      this.goal = { x: best.c.x, z: best.c.z, r: 11 };
+      if (marked) this.guideTarget.show(best.c.x, best.c.z, 2.2); else this.guideTarget.hide();
       return;
     }
+    // 2. Make blocks safe.
     const sg = this.suggest();
     const waveLabel = this.settings.relaxed ? 'Bring the heat wave (F) when ready' : 'Survive the heat wave (or press F)';
-    if (sg.done) {
-      this.h.setSteps(this.def.year, { find: ['Find the heat ✓', 'done'], protect: ['All blocks are safe', 'done'], wave: [waveLabel, 'now'] });
-      this.h.next('Every block is safe from the wave! Press F (or Bring the wave) when you are ready.');
-      this.h.where(''); this.guideTarget.hide(); return;
+    if (sg.done || sg.stuck) {
+      this.h.setSteps(this.def.year, { find: ['Find the heat ✓', 'done'], protect: [sg.done ? 'All blocks are safe' : `Make blocks safe: ${sg.left} still too hot`, sg.done ? 'done' : 'now'], wave: [waveLabel, 'now'] });
+      this.h.action(touch ? 'Tap Bring the wave when you are ready.' : 'Press F (or Bring the wave) when you are ready.', touch ? null : 'F');
+      this.h.next(sg.done ? 'Every block is safe from the wave. Well done!' : this.coins < 1 ? 'You have used all your coins for this year.' : 'No room is left for the fixes you can afford.');
+      this.h.where(''); this.h.highlight('wave'); this.guideTarget.hide();
+      return;
     }
     this.h.setSteps(this.def.year, { find: ['Find the heat ✓', 'done'], protect: [`Make blocks safe: ${sg.left} still too hot`, 'now'], wave: [waveLabel, 'todo'] });
-    if (sg.stuck) {
-      this.h.next(this.coins < 1 ? 'Out of coins for this year. Press F to bring the heat wave.' : 'No room left for the fixes you can afford. Press F when ready.');
-      this.h.where(''); this.guideTarget.hide(); return;
-    }
-    const label = { tree: 'plant a tree', roof: 'paint a roof white', pond: 'dig a pond', centre: 'build a cooling centre' }[sg.type];
+    const names = { tree: 'Tree', roof: 'White roof', pond: 'Pond', centre: 'Cooling centre' };
+    const verbs = { tree: `plant the ${this.tree ? this.tree.name.toLowerCase() : 'tree'}`, roof: 'paint the roof white', pond: 'dig the pond', centre: 'build the cooling centre' };
     const key = { tree: 1, roof: 2, pond: 3, centre: 4 }[sg.type];
-    const here = Math.hypot(sg.x - p.x, sg.z - p.z) < 3.5 || (sg.type === 'tree' && districtAt(p.x, p.z) === sg.district);
+    const dist = Math.hypot(sg.x - p.x, sg.z - p.z);
+    const here = sg.type === 'tree' ? Math.hypot(sg.at.x - p.x, sg.at.z - p.z) < 3.6 : dist < 3.6;
     const selected = this.selected === sg.type;
-    const how = here ? (selected ? `You are there: press E${this.rt.input.isTouch ? ' (Place)' : ''}.` : `You are there: press ${key} to choose it, then E.`) : `Go to the yellow light, then ${selected ? 'press E' : `press ${key}, then E`}.`;
     const planTxt = sg.centreOnly ? '' : this.planText(sg.plan.items);
-    const head = sg.centreOnly
-      ? `${sg.d.name} cannot be cooled enough with what is left, but a cooling centre will keep its people safe.`
-      : `${sg.d.name} is ${sg.need.toFixed(1)} °C too hot. To make it safe: ${planTxt} (game estimate).`;
-    this.h.next(`${head} Now: ${label}. ${how}`);
+    const spotWord = sg.type === 'tree' ? 'the green circle' : 'the yellow light';
+    // The one thing to do now.
+    if (!here) { this.h.action(`Follow the arrow to ${spotWord}.`); this.h.highlight(selected ? null : sg.type); }
+    else if (!selected) { this.h.action(touch ? `Tap ${names[sg.type]} below.` : `Press ${key} to choose ${names[sg.type]}.`, touch ? null : String(key)); this.h.highlight(sg.type); }
+    else { this.h.action(`Press ${placeKey} to ${verbs[sg.type]}.`, touch ? null : 'E'); this.h.highlight('place'); }
+    this.h.next(sg.centreOnly
+      ? `${sg.d.name} cannot be cooled enough with what is left, but a cooling centre keeps its people safe.`
+      : `${sg.d.name} is ${sg.need.toFixed(1)} °C too hot. Still to do here: ${planTxt} (game estimate).`);
+    this.h.where(here ? `✔ You are at ${spotWord}.` : `${spotWord[0].toUpperCase()}${spotWord.slice(1)}: ${words(sg.at.x, sg.at.z)}`);
+    if (sg.type === 'tree') this.city.showTreeSpots(sg.district);
+    this.goal = { x: sg.at.x, z: sg.at.z, r: sg.type === 'tree' ? 3.6 : sg.type === 'roof' ? 6.5 : 6 };
     this.labelFor = here ? null : { i: sg.district, text: sg.centreOnly ? '⛺ cooling centre' : planTxt || 'almost safe', at: { x: sg.at.x, z: sg.at.z, y: sg.type === 'roof' ? (sg.at.h || 0) + 3 : 4.2 } };
-    this.h.where(here ? '' : `Yellow light: ${words(sg.x, sg.z)}`);
     if (showGuide) this.guideTarget.show(sg.at.x, sg.at.z, sg.type === 'roof' ? 0.9 : sg.type === 'tree' ? 0.6 : 1.4); else this.guideTarget.hide();
-    this.guideTarget.setNear(here); // no beam in your face once you are standing in it
-    if (sg.type === 'roof' && showGuide) this.guideTarget.group.position.y = sg.at.h || 0;
-    else this.guideTarget.group.position.y = 0;
+    this.guideTarget.setNear(here);
+    this.guideTarget.group.position.y = sg.type === 'roof' && showGuide ? sg.at.h || 0 : 0;
+  }
+
+  // The arrow at the child's feet and at the top of the screen: always points to the goal,
+  // shows the distance, and turns red with "Wrong way" when you walk away from it.
+  updateArrow(dt) {
+    const g = this.goal, p = this.rt.player.pos;
+    if (!this.arrow) {
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 1.3); shape.lineTo(0.75, 0.2); shape.lineTo(0.28, 0.2); shape.lineTo(0.28, -0.9); shape.lineTo(-0.28, -0.9); shape.lineTo(-0.28, 0.2); shape.lineTo(-0.75, 0.2); shape.closePath();
+      this.arrowMat = new THREE.MeshBasicMaterial({ color: '#ffe14d', transparent: true, opacity: 0.95, depthWrite: false, side: THREE.DoubleSide });
+      this.arrow = new THREE.Mesh(new THREE.ShapeGeometry(shape), this.arrowMat);
+      this.arrow.renderOrder = 6;
+      this.rt.stage.scene.add(this.arrow);
+    }
+    if (!g || this.settings.guide === false) { this.arrow.visible = false; this.h.compass(0, false); return; }
+    const dx = g.x - p.x, dz = g.z - p.z, d = Math.hypot(dx, dz);
+    const arrived = d < g.r;
+    // Wrong-way check: 4 m farther than your closest point for more than half a second.
+    // It stays on until you have turned back and come 2.5 m closer again.
+    const key = `${Math.round(g.x)}|${Math.round(g.z)}`;
+    if (this.goalKey !== key) { this.goalKey = key; this.bestD = d; this.wrongSince = 0; this.wrongOn = false; }
+    if (!this.wrongOn) {
+      this.bestD = Math.min(this.bestD, d);
+      if (!arrived && d > this.bestD + 4) {
+        this.wrongSince += dt;
+        if (this.wrongSince > 0.6) { this.wrongOn = true; this.wrongD = d; say('Wrong way! Turn around and follow the arrow.'); vibrate([60, 60, 60]); }
+      } else this.wrongSince = 0;
+    } else {
+      this.wrongD = Math.max(this.wrongD, d);
+      if (arrived || d < this.wrongD - 2.5) { this.wrongOn = false; this.bestD = d; this.wrongSince = 0; }
+    }
+    const showWrong = this.wrongOn;
+    // Ground arrow just in front of the child, pointing at the goal.
+    const ang = Math.atan2(dx, dz);
+    this.arrow.visible = !arrived;
+    this.arrow.position.set(p.x + Math.sin(ang) * 1.9, p.y + 0.25, p.z + Math.cos(ang) * 1.9);
+    this.arrow.rotation.set(-Math.PI / 2, 0, 0); // lie flat, then turn toward the goal
+    this.arrow.rotateZ(ang + Math.PI);
+    this.arrowMat.color.set(showWrong ? '#ff5a3c' : '#ffe14d');
+    this.arrow.scale.setScalar(this.settings.reducedMotion ? 1 : 1 + Math.sin(performance.now() / 180) * 0.08);
+    // Screen arrow.
+    const rel = relAngle(this.rt.follow.yaw, dx, dz);
+    this.h.compass(rel, true, arrived ? '✔ here' : showWrong ? '↩ Wrong way' : `${Math.round(d)} m`, arrived ? 'ok' : showWrong ? 'wrong' : '');
   }
 
   foundSpot(s) {
@@ -627,6 +690,7 @@ export class Round {
 
   dispose() {
     this.guideTarget?.dispose();
+    if (this.arrow) this.rt.stage.scene.remove(this.arrow);
     this.cond?.stop();
     this.waves?.clear();
     this.city?.dispose();

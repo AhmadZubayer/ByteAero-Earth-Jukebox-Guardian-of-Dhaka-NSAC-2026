@@ -13,25 +13,40 @@ for (const year of [2000, 2010, 2020, 2024, 2035, 2050]) {
   // Walk into the city with the keyboard.
   await p.keyboard.down('KeyW'); await p.keyboard.down('ShiftLeft'); await p.waitForTimeout(1700); await p.keyboard.up('ShiftLeft'); await p.keyboard.up('KeyW');
   await p.waitForTimeout(300);
-  // 1) Tree button -> picker -> Mango, then E.
+  // 1) Tree button -> picker -> Mango, then go to the green circle the arrow points at, then E.
   await p.getByRole('button', { name: /Tree/ }).first().click();
   await p.getByRole('button', { name: /Mango tree/ }).click();
+  const toSpot = async () => p.evaluate(async () => { const r = window.__round; const d = r.city.districts[window.__rt.player.pos ? (await import('/src/world/city.js')).districtAt(window.__rt.player.pos.x, window.__rt.player.pos.z) : 0]; const q = d?.treePlots.find((t) => !t.used) || r.city.districts.flatMap((x) => x.treePlots).find((t) => !t.used); window.__rt.player.pos.set(q.x + 0.6, 0, q.z + 0.6); await new Promise((res) => setTimeout(res, 300)); });
+  await toSpot();
   const n0 = await p.evaluate(() => window.__round.fixes.length);
   const aim = await p.evaluate(() => window.__rt.frontPoint(1.6));
   await p.keyboard.press('KeyE'); await p.waitForTimeout(400);
   const viaE = await p.evaluate(() => window.__round.fixes.length);
   const lastTree = await p.evaluate(() => { const d = window.__round.city.districts[window.__round.fixes.at(-1)?.district]; return d ? d.treePlots.filter((q) => q.used === 'planted').length : 0; });
-  // 2) The Place button.
-  await p.keyboard.down('KeyD'); await p.waitForTimeout(500); await p.keyboard.up('KeyD'); await p.waitForTimeout(200);
+  // 2) The Place button, at the next green circle.
+  await toSpot();
   await p.getByRole('button', { name: /Plant Mango tree/ }).click(); await p.waitForTimeout(400);
   const viaButton = await p.evaluate(() => window.__round.fixes.length);
-  // 3) Click on the ground a few metres in front of the child.
+  // 3) Click on a green circle you can see (turn the camera toward it first, like a player).
+  await p.evaluate(async () => {
+    const { districtAt } = await import('/src/world/city.js');
+    const rt = window.__rt, pp = rt.player.pos, d = window.__round.city.districts[districtAt(pp.x, pp.z)];
+    const q = d.treePlots.filter((t) => !t.used).sort((a, b) => Math.hypot(a.x - pp.x, a.z - pp.z) - Math.hypot(b.x - pp.x, b.z - pp.z))[0];
+    const L = Math.hypot(q.x - pp.x, q.z - pp.z) || 1;
+    if (L > 6) pp.set(q.x - (q.x - pp.x) / L * 6, 0, q.z - (q.z - pp.z) / L * 6); // walk up to about 6 m away
+    rt.follow.yaw = Math.atan2(q.x - pp.x, q.z - pp.z) + Math.PI; rt.follow.pitch = 0.6;
+  });
+  await p.waitForTimeout(700);
   const scr = await p.evaluate(async () => {
     const rt = window.__rt; const { Vector3 } = await import('/node_modules/.vite/deps/three.js');
-    const f = rt.frontPoint(4); const v = new Vector3(f.x, 0.16, f.z).project(rt.stage.camera);
+    const { districtAt } = await import('/src/world/city.js');
+    const pp = rt.player.pos; const d = window.__round.city.districts[districtAt(pp.x, pp.z)];
+    const q = d.treePlots.filter((t) => !t.used).sort((a, b) => Math.hypot(a.x - pp.x, a.z - pp.z) - Math.hypot(b.x - pp.x, b.z - pp.z))[0];
+    const v = new Vector3(q.x, 0.16, q.z).project(rt.stage.camera);
     const r = rt.stage.renderer.domElement.getBoundingClientRect();
-    return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height };
+    return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height, z: v.z, q: [q.x, q.z], p: [pp.x, pp.z] };
   });
+  if (process.env.DEBUG) console.log(year, 'click target', JSON.stringify(scr));
   await p.mouse.click(scr.x, scr.y); await p.waitForTimeout(400);
   const viaClick = await p.evaluate(() => window.__round.fixes.length);
   const say = await p.evaluate(() => [...document.querySelectorAll('#live-polite p')].map((x) => x.textContent).filter((t) => /placed|room|Walk|far/.test(t)).slice(-3));

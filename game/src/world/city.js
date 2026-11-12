@@ -240,25 +240,61 @@ export class City {
     const rot = (x * 13 + z * 7) % 6.28;
     const idx = im.add(matrixFrom(x, 0.16, z, rot, animate ? 0.01 : s));
     this.rt.world.addBox(x, z, 0.7, 0.7, 6, 'tree');
+    const entry = { im, idx, x, z, rot, s, cur: animate ? 0.01 : s, hidden: false, growing: animate };
+    (this.treeList ||= []).push(entry);
     if (animate && idx >= 0) {
       const o = { s: 0.01 };
-      this.growing.push(o);
-      gsap.to(o, { s, duration: this.rt.settings.reducedMotion ? 0.01 : 1.1, ease: 'back.out(1.6)', onUpdate: () => im.set(idx, matrixFrom(x, 0.16, z, rot, o.s)), onComplete: () => this.growing.splice(this.growing.indexOf(o), 1) });
+      gsap.to(o, { s, duration: this.rt.settings.reducedMotion ? 0.01 : 1.1, ease: 'back.out(1.6)', onUpdate: () => { entry.cur = o.s; if (!entry.hidden) im.set(idx, matrixFrom(x, 0.16, z, rot, o.s)); }, onComplete: () => { entry.growing = false; } });
+    }
+  }
+
+  // Trees between the camera and the child (or right over the child) are hidden so they never
+  // fill the screen; they come back as soon as the view is clear.
+  updateOcclusion(cam, player) {
+    if (!this.treeList) return;
+    const ax = cam.x, az = cam.z, bx = player.x, bz = player.z;
+    const dx = bx - ax, dz = bz - az, len2 = dx * dx + dz * dz || 1;
+    for (const t of this.treeList) {
+      if (t.idx < 0) continue;
+      const near = Math.abs(t.x - ax) < 16 && Math.abs(t.z - az) < 16;
+      let hide = false;
+      if (near) {
+        const u = Math.max(0, Math.min(1, ((t.x - ax) * dx + (t.z - az) * dz) / len2));
+        const px = ax + dx * u, pz = az + dz * u;
+        hide = Math.hypot(t.x - px, t.z - pz) < 2.8 && cam.y < t.s * 5.5 + 2;
+      }
+      if (hide !== t.hidden) {
+        t.hidden = hide;
+        t.im.set(t.idx, matrixFrom(t.x, 0.16, t.z, t.rot, hide ? 0.0001 : t.cur));
+      }
     }
   }
 
   // Where a tree would go for an aimed point (x, z): right there if it is open ground inside a
   // block, otherwise the nearest free tree spot of that block. Returns { x, z, slot, exact } or null.
-  treeSpot(x, z) {
+  treeSpot(x, z, reach = 4.2) {
     const di = districtAt(x, z);
     if (di < 0) return null;
     const d = this.districts[di];
-    const slot = this.nearestFree(d.treePlots, x, z, 40); // the block still has room for a tree?
-    if (!slot) return null;
-    const inBlock = Math.abs(x - d.cx) < BLOCK / 2 - 0.8 && Math.abs(z - d.cz) < BLOCK / 2 - 0.8;
-    const clearOfPond = !(d.big.used && Math.hypot(x - d.big.x, z - d.big.z) < 3.4);
-    if (inBlock && clearOfPond && this.rt.world.isFree(x, z, 1.1)) return { x, z, slot, exact: true, district: di };
-    return { x: slot.x, z: slot.z, slot, exact: false, district: di };
+    const slot = this.nearestFree(d.treePlots, x, z, reach);
+    return slot ? { x: slot.x, z: slot.z, slot, exact: true, district: di } : null;
+  }
+
+  // Glowing rings on every free tree spot of block i (null hides them).
+  showTreeSpots(i) {
+    if (this.spotsFor === i && this.spotsCount === (i == null ? 0 : this.districts[i].treePlots.filter((q) => !q.used).length)) return;
+    this.spotsFor = i;
+    if (!this.spotRings) {
+      this.spotRings = new THREE.InstancedMesh(new THREE.RingGeometry(0.9, 1.25, 32), new THREE.MeshBasicMaterial({ color: '#7dffa0', transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }), 16);
+      this.spotRings.renderOrder = 4; this.spotRings.frustumCulled = false;
+      this.group.add(this.spotRings);
+    }
+    const free = i == null ? [] : this.districts[i].treePlots.filter((q) => !q.used);
+    this.spotsCount = free.length;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+    free.forEach((pl, k) => this.spotRings.setMatrixAt(k, m.compose(new THREE.Vector3(pl.x, 0.24, pl.z), q, new THREE.Vector3(1, 1, 1))));
+    this.spotRings.count = free.length;
+    this.spotRings.instanceMatrix.needsUpdate = true;
   }
 
   // Place a fix. Returns a short description, or null if it does not fit here.
