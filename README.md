@@ -11,7 +11,7 @@ imagined and shaped by your choices. At the end your six years play back as one 
 **Earth Record**, which you can download as a WAV file, and you get a printable ticket.
 
 - **Game:** [`game/`](game/). Player guide: [docs/GUIDE.md](docs/GUIDE.md).
-- **Plan:** [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) · **Credits and licences:** [docs/CREDITS.md](docs/CREDITS.md)
+- **Plan:** [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) · **Credits and licences:** [docs/CREDITS.md](docs/CREDITS.md) · **Team handoff and setup:** [docs/HANDOFF.md](docs/HANDOFF.md)
 
 ## Run it
 
