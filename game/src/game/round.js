@@ -11,6 +11,7 @@ import { Hud } from '../ui/hud.js';
 import { say, directionWords, relAngle, vibrate } from '../ui/announce.js';
 import { dialogue, clear } from '../ui/dom.js';
 import { SoundWaves } from '../world/soundwaves.js';
+import { pickTree } from '../ui/treePicker.js';
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -102,7 +103,7 @@ export class Round {
   async play() {
     const rt = this.rt;
     this.h = new Hud();
-    this.h.onPick = (k) => this.pick(k);
+    this.h.onPick = (k) => this.userPick(k);
     this.h.onMenu = () => this.rt.input.fire('menu');
     this.h.onWave = () => this.finish();
     this.h.select(this.selected);
@@ -173,7 +174,7 @@ export class Round {
 
   bindInput() {
     const i = this.rt.input;
-    i.on('pick', (n) => this.pick(['tree', 'roof', 'pond', 'centre'][n - 1]));
+    i.on('pick', (n) => this.userPick(['tree', 'roof', 'pond', 'centre'][n - 1]));
     i.on('act', () => this.act());
     i.on('scan', () => this.scan());
     i.on('where', () => { this.usedHint = true; this.where(false); });
@@ -182,6 +183,24 @@ export class Round {
   }
 
   finish() { if (this.phase === 'play') { this.phase = 'ending'; this.endPlay?.(); } }
+
+  // Choosing Tree opens the tree picker; the chosen tree is remembered for the next plantings.
+  async userPick(key) {
+    this.pick(key);
+    if (key === 'tree') await this.chooseTree();
+  }
+
+  async chooseTree() {
+    if (this.choosingTree) return null;
+    this.choosingTree = true;
+    const wasActive = this.phase === 'play';
+    if (wasActive) this.rt.setPlayerActive(false);
+    const t = await pickTree(this.tree?.key);
+    if (wasActive && this.phase === 'play') this.rt.setPlayerActive(true);
+    this.choosingTree = false;
+    if (t) { this.tree = t; this.h.fixButtons.tree.querySelector('.fix-long').textContent = `1 ${t.name}`; say(`${t.name} chosen. Stand near open ground in a block and press E to plant it.`); }
+    return t;
+  }
 
   pick(key) {
     if (!FIXES[key]) return;
@@ -198,13 +217,14 @@ export class Round {
     if (this.def.talk && !this.talked && this.city.teaStall.position.distanceTo(p) < 4) { this.talk(); return; }
     const f = FIXES[this.selected];
     if (this.coins < f.cost) { say(`Not enough coins for a ${f.label.toLowerCase()}.`); return; }
+    if (this.selected === 'tree' && !this.tree) { this.chooseTree().then((t) => { if (t) this.act(); }); return; }
     const di = districtAt(p.x, p.z);
     const target = this.city.preview(this.selected, p.x, p.z);
     if (di < 0 || !target || !plotFree(this.layouts, di, this.selected, this.fixes)) {
       say(this.selected === 'roof' ? 'Stand next to a building to paint its roof white.' : this.selected === 'tree' ? 'No free spot for a tree here. Try open ground in a block.' : 'Go to the middle of a block with an empty square to build this.');
       return;
     }
-    const placed = this.city.place(this.selected, p.x, p.z);
+    const placed = this.city.place(this.selected, p.x, p.z, this.selected === 'tree' ? this.tree.kind : null);
     if (!placed) { say('That does not fit here.'); return; }
     this.fixes.push({ type: this.selected, district: placed.district });
     this.coins -= f.cost;
@@ -217,7 +237,7 @@ export class Round {
     const after = this.forecast.districts[placed.district];
     this.chime(after.safe && !before.safe);
     const status = after.cooled ? 'This block is now safe from the wave' : after.sheltered ? 'People here can shelter, but the block is still hot' : `This block still needs about ${Math.max(0.1, after.excess - DANGER).toFixed(1)} more degrees of cooling`;
-    say(`${f.label} placed in ${d.name}. ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
+    say(`${this.selected === 'tree' ? this.tree.name : f.label} placed in ${d.name}. ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
     this.hud();
   }
 

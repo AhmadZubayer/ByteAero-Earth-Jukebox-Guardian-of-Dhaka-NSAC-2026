@@ -36,7 +36,7 @@ for (const year of [2000, 2024]) {
     rt.player.pos.set(plot.x + 1.2, 0, plot.z + 1.2);
     await new Promise((res) => setTimeout(res, 400));
     const coins = r.coins;
-    r.pick('tree'); r.act();
+    r.tree = { key: 'mango', kind: 1, name: 'Mango tree' }; r.pick('tree'); r.act();
     await new Promise((res) => setTimeout(res, 1500));
     return { coinsBefore: coins, coinsAfter: r.coins, fixes: r.fixes.length, plotUsed: plot.used, found: r.found.size };
   });

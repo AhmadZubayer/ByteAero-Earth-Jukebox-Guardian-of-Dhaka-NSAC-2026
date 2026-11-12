@@ -248,7 +248,7 @@ export class City {
   }
 
   // Place a fix. Returns a short description, or null if it does not fit here.
-  place(type, x, z) {
+  place(type, x, z, treeKind = null) {
     const di = districtAt(x, z);
     if (di < 0) return null;
     const d = this.districts[di];
@@ -257,7 +257,7 @@ export class City {
       const p = this.nearestFree(d.treePlots, x, z, 6);
       if (!p) return null;
       p.used = 'planted';
-      this.addTree(p.x, p.z, d.fixes.length % 3, 1, true);
+      this.addTree(p.x, p.z, treeKind ?? d.fixes.length % 3, 1, true);
       this.effects.leaves(new THREE.Vector3(p.x, 0, p.z));
       d.fixes.push('tree');
       return { district: di, at: p };

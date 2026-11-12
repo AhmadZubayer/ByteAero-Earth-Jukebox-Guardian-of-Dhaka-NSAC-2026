@@ -281,3 +281,17 @@ html.text-only, html.text-only body { overflow: auto; height: auto; }
 /* Headings get focus for screen readers when a screen opens; no ring needed on them. */
 h1[tabindex='-1']:focus, h2[tabindex='-1']:focus { outline: none; }
 @media (max-width: 640px) { .tut-card .viz { display: none; } .tut-card { padding: 10px 14px; } .tut-card .row { margin-top: 6px; } }
+
+/* Tree picker */
+.modal-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(8, 12, 24, 0.55); display: grid; place-items: center; padding: var(--gutter); }
+.tree-modal { width: min(720px, 100%); }
+.tree-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+.tree-option { display: grid; gap: 6px; justify-items: center; text-align: center; background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 14px 10px; cursor: pointer; font: inherit; color: var(--ink); min-height: 48px; }
+.tree-option:hover, .tree-option:focus-visible { background: #eaf7e6; }
+.tree-option[aria-pressed='true'] { background: #d9f2d2; box-shadow: inset 0 0 0 3px var(--green); }
+.tree-option strong { font-size: 17px; }
+.tree-option span { font-size: 14px; color: var(--ink-2); }
+.tree-icon { font-size: 44px; line-height: 1; color: inherit !important; }
+@media (max-width: 640px) { .tree-grid { grid-template-columns: 1fr; } .tree-option { grid-template-columns: 48px 1fr; justify-items: start; text-align: left; } .tree-icon { grid-row: span 2; font-size: 36px; } }
+.tut-where { font-size: 14px; font-weight: 700; color: #ffe14d; margin: 0 0 6px; }
+.tut-where:empty, .tut-extra:empty { display: none; }

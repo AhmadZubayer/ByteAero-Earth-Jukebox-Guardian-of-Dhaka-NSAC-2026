@@ -49,7 +49,7 @@ for (let guard = 0; guard < 12; guard++) {
       if (f.type === 'pond' || f.type === 'centre') { x = d.cx + 3.2; z = d.cz; }
       rt.player.pos.set(x, 0, z);
       await new Promise((res) => setTimeout(res, 120));
-      r.pick(f.type); r.act(); n++;
+      r.tree = { key: 'mango', kind: 1, name: 'Mango tree' }; r.pick(f.type); r.act(); n++;
       await new Promise((res) => setTimeout(res, 80));
     }
     return n;

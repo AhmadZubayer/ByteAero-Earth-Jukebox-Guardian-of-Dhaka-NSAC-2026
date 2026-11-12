@@ -43,13 +43,18 @@ try {
   await page.evaluate(() => { const b = [...window.__lastConductor.beacons][0]; window.__rt.player.pos.set(b.x, 0, b.z + 1); });
   await page.waitForSelector('text=ask Echo to scan', { timeout: 10000 });
   await page.keyboard.press('KeyQ');
-  await page.waitForSelector('text=Plant a tree', { timeout: 10000 });
+  await page.waitForSelector('text=Choose a tree, then plant', { timeout: 10000 });
   check(true, 'tutorial step 3: scan with Q');
-  await page.evaluate(() => { const x = window.__rt.player.pos.x > 0 ? 6.6 : -6.6; window.__rt.player.pos.set(x * 0.85, 0, -13); });
+  await page.evaluate(() => { const g = window.__tutTarget.group.position; window.__rt.player.pos.set(g.x, 0, g.z); });
   await page.waitForTimeout(300);
-  await page.keyboard.press('Digit1'); await page.keyboard.press('KeyE');
+  await page.keyboard.press('Digit1');
+  await page.waitForSelector('#tree-h', { timeout: 5000 });
+  check(true, 'pressing 1 opens the tree picker');
+  await page.keyboard.press('Digit2'); // coconut palm
+  await page.waitForTimeout(200);
+  await page.keyboard.press('KeyE');
   await page.getByRole('button', { name: 'Start the game' }).click({ timeout: 10000 });
-  check(true, 'tutorial step 4: plant a tree, then start the game');
+  check(true, 'tutorial step 4: choose a tree, plant it, then start the game');
   await page.waitForFunction('window.__round && window.__round.phase === "intro"', null, { timeout: 90000 });
   for (let k = 0; k < 8; k++) { const n = page.locator('.dialogue button').first(); if (await n.count() === 0) break; await n.click(); await page.waitForTimeout(150); }
   await page.waitForFunction('window.__round.phase === "play"', null, { timeout: 20000 });
@@ -57,9 +62,13 @@ try {
   // Plant a tree with the keyboard next to a free plot, then bring the wave with F.
   await page.evaluate(() => { const r = window.__round; const d = r.city.districts[r.spots[0]]; const p = d.treePlots.find((q) => !q.used); window.__rt.player.pos.set(p.x + 0.8, 0, p.z + 0.8); });
   await page.waitForTimeout(300);
-  await page.keyboard.press('Digit1'); await page.keyboard.press('KeyE');
+  await page.keyboard.press('Digit1');
+  await page.waitForSelector('#tree-h', { timeout: 5000 });
+  await page.keyboard.press('Digit1'); // mango
+  await page.waitForTimeout(200);
+  await page.keyboard.press('KeyE');
   await page.waitForTimeout(300);
-  check(await page.evaluate(() => window.__round.fixes.length) === 1, 'a tree is planted with 1 + E');
+  check(await page.evaluate(() => window.__round.fixes.length) === 1, 'a mango tree is planted with 1, 1, E');
   await page.keyboard.press('KeyF');
   await page.waitForSelector('#rep-h', { timeout: 30000 });
   check(true, `round completes: ${await page.locator('#rep-h').textContent()}`);

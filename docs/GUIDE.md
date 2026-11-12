@@ -29,11 +29,12 @@ does, see the notes flow in the live visualiser, try the audio legend, then name
 
    | Key | Fix | Coins | What it does (game estimate) |
    |---|---|---|---|
-   | 1 | Tree | 1 | Shade and cooler air in its block |
+   | 1 | Tree (choose mango, coconut palm or neem) | 1 | Shade and cooler air in its block |
    | 2 | White roof | 2 | Stand next to a building; its roof reflects sunlight |
    | 3 | Pond | 3 | Cools its block and a little of the neighbours (needs the block's central square) |
    | 4 | Cooling centre | 4 | People can shelter there. It protects people but does not cool the city |
 
+   Choosing **Tree** opens a picker: mango, coconut palm or neem (all cost the same and cool the same).
    A yellow ring shows where the chosen fix will go. Press **E** to place it.
 4. **The heat wave** arrives when the timer ends, or press **F** (or *Bring the wave*). Protected blocks
    stay calm and people cheer; the music settles. Unprotected blocks turn red and the music stays out of tune.
