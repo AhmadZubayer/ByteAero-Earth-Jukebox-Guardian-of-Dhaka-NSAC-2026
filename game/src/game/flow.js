@@ -85,8 +85,7 @@ function titleScreen() {
         h('p', {}, 'Each year a heat wave is coming to Dhaka. Listen: a rising sitar line comes from the hottest blocks, louder, higher and faster as you get close. Walk there and spend coins on trees, white roofs, ponds and cooling centres before the wave hits.'),
         h('p', {}, 'Keyboard: W A S D or arrows to move, Shift to run, Q for Echo\'s sound scan, R for directions in words, 1 to 4 to choose a fix, E to place it, F to bring the wave, Esc for the menu. Phone: joystick on the left, buttons on the right, fixes along the bottom.')),
       h('details', { class: 'note', style: 'text-align:left' }, h('summary', {}, 'Settings and accessibility'), settingsPanel(settings, (k) => { if (k === 'textOnly') location.reload(); })),
-      h('p', { class: 'note', style: 'text-align:left' }, 'Best with headphones: sounds come from where they are in the city. Every sound also has a written description. ',
-        h('a', { href: 'classic/index.html' }, 'Play the simpler 2D version'), '.'),
+      h('p', { class: 'note', style: 'text-align:left' }, 'Best with headphones: sounds come from where they are in the city. Every sound also has a written description. No 3D graphics? Turn on Text-only mode in the settings above.'),
       h('p', { class: 'team' }, 'Team BYTEAERO · AIUB, Dhaka. Not an official NASA product. Music is original, inspired by NASA sonification.'),
     ));
     window.__ready = true;

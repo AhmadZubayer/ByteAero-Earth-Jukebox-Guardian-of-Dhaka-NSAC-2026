@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && bun scripts/copy-classic.js",
+    "build": "vite build",
     "preview": "vite preview",
     "data": "bun scripts/build-data.js",
     "models": "bun scripts/build-models.js",

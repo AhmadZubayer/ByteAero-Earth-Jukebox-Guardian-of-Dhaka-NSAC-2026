@@ -245,3 +245,6 @@ Optional, after the first version: preferred character look, a rickshaw model, M
 - **Balance:** wave strength comes from NASA POWER April maximum air temperature plus a per-round game
   adjustment; coins were tuned by simulation (`game/tests/tune.js`) so that doing nothing loses every
   round and good play reaches two or three stars.
+- **2D game removed:** at the owner's request the old 2D game (`initial/`) was deleted from the
+  repository, along with the `classic/` fallback. Without WebGL the game now offers text-only mode.
+  The 2D game remains in the git history (commits before this change).

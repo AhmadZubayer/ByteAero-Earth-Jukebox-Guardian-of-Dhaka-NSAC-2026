@@ -10,8 +10,7 @@ then watch the wave arrive. Six years: 2000, 2010, 2020 and 2024 use NASA data; 
 imagined and shaped by your choices. At the end your six years play back as one piece of music, the
 **Earth Record**, which you can download as a WAV file, and you get a printable ticket.
 
-- **3D game:** [`game/`](game/) (this branch). Player guide: [docs/GUIDE.md](docs/GUIDE.md).
-- **2D game (fallback):** [`initial/sites/earth-jukebox-dhaka/`](initial/sites/earth-jukebox-dhaka/), also served by the 3D game at `classic/`. [Published 2D version](https://earth-jukebox-guardian-of-dhaka.oaken-map-6488.chatgpt.site/).
+- **Game:** [`game/`](game/). Player guide: [docs/GUIDE.md](docs/GUIDE.md).
 - **Plan:** [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) · **Credits and licences:** [docs/CREDITS.md](docs/CREDITS.md)
 
 ## Run it
@@ -22,7 +21,7 @@ Needs [bun](https://bun.sh).
 cd game
 bun install
 bun run dev        # http://localhost:5173
-bun run build      # production build in game/dist (includes the 2D game in dist/classic)
+bun run build      # production build in game/dist
 bun run test       # smoke test of the build in a real browser (Playwright + Chrome)
 ```
 
@@ -64,7 +63,7 @@ reader. Every sound cue has a written description in a live region and as an on-
 gives directions in words ("ahead and to your left"). Settings: relaxed mode (no timer), text-only mode
 (the whole game as accessible pages, including a "play the city" sweep for finding heat by ear), heat
 view on/off, reduced motion, captions, phone vibration near a hot spot, low graphics quality, and an
-audio legend with cool and hot reference tones. Without WebGL the page offers the 2D game.
+audio legend with cool and hot reference tones. Without WebGL the page offers text-only mode.
 
 ## Team
 

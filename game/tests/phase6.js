@@ -25,15 +25,15 @@ const browser = await launch();
   await ctx.close();
 }
 
-// 2. No WebGL: the fallback offers the 2D game.
+// 2. No WebGL: the fallback offers text-only mode.
 {
   const nogl = await chromium.launch({ executablePath: '/usr/bin/google-chrome', headless: true, args: ['--disable-webgl', '--disable-3d-apis'] });
   const page = await nogl.newPage();
   await page.goto(base);
-  await page.waitForSelector('text=Play the 2D game', { timeout: 15000 });
-  const href = await page.getByRole('link', { name: 'Play the 2D game' }).getAttribute('href');
-  const res = await page.request.get(new URL(href, base).href);
-  console.log('no-WebGL fallback: link', href, 'status', res.status());
+  await page.waitForSelector('text=Play text-only', { timeout: 15000 });
+  await page.getByRole('button', { name: 'Play text-only' }).click();
+  await page.waitForSelector('#title-h', { timeout: 15000 });
+  console.log('no-WebGL fallback: text-only title shown, canvases', await page.locator('canvas').count());
   await page.screenshot({ path: 'screenshots/phase6-nowebgl.png' });
   await nogl.close();
 }

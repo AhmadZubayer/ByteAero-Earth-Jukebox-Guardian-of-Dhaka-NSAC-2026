@@ -14,10 +14,8 @@ function fallback() {
   show(h('section', { class: 'panel' },
     h('h1', {}, 'Earth Jukebox: Guardian of Dhaka'),
     h('p', {}, 'This device or browser cannot show the 3D city (WebGL is not available).'),
-    h('p', {}, 'You can still play: the simpler 2D Earth Jukebox uses the same NASA images, or you can play this game in text-only mode with sound.'),
-    h('div', { class: 'row' },
-      h('a', { class: 'btn', href: 'classic/index.html' }, 'Play the 2D game'),
-      button('Play text-only', () => start(true), 'secondary')),
+    h('p', {}, 'You can still play the whole game in text-only mode, with sound, using the same NASA data. To see the 3D city, turn on graphics (hardware) acceleration in your browser settings and reload.'),
+    h('div', { class: 'row' }, button('Play text-only', () => start(true), '', { 'data-autofocus': true })),
   ));
 }
 

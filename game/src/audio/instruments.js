@@ -174,7 +174,7 @@ export function click(ctx, dest, t, { gain = 0.12 } = {}) {
   n.connect(bp).connect(g).connect(dest); n.start(t, 0.3); n.stop(t + 0.03);
 }
 
-// ---------- Wind: the old 2D game's filtered-noise texture, kept as a quiet layer ----------
+// ---------- Wind: a quiet filtered-noise texture under the music ----------
 export function windLayer(ctx, dest, { gain = 0.04 } = {}) {
   const n = ctx.createBufferSource(); n.buffer = noiseBuffer(ctx); n.loop = true;
   const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = 0.6;
