@@ -6,7 +6,8 @@ import gsap from 'gsap';
 import { loadModels } from '../core/assets.js';
 import { InstancedModel, matrixFrom } from './instanced.js';
 import { groundTextures, plane } from './ground.js';
-import { makeRickshaw, makeTeaStall, makeKite } from './props.js';
+import { makeTeaStall, makeKite } from './props.js';
+import { Traffic } from './traffic.js';
 import { Animated } from '../player/character.js';
 import { Effects } from './effects.js';
 import { DhakaBuildings } from './dhakaBuildings.js';
@@ -184,14 +185,13 @@ export class City {
     this.teaStall.position.set(centre.cx + 4, 0.16, centre.cz + 11);
     g.add(this.teaStall);
     world.addBox(centre.cx + 4, centre.cz + 11, 2.4, 1.2, 1.2);
-    const nR = low ? 4 : 8;
-    for (let k = 0; k < nR; k++) {
-      const r = makeRickshaw(k);
-      const lane = -HALF + ((k % (COLS + 1))) * PITCH + (k % 2 ? 1.6 : -1.6);
-      const along = k % 2 === 0;
-      r.userData = { ...r.userData, lane, along, s: -HALF + ((k * 37) % (COLS * PITCH)), dir: k % 3 === 0 ? -1 : 1, speed: 2 + (k % 3) * 0.6 };
-      g.add(r); this.rickshaws.push(r);
+    // Traffic on every road: rickshaws with pullers and passengers, CNG auto-rickshaws.
+    const routes = [];
+    for (let k = 0; k <= COLS; k++) {
+      const line = -HALF + k * PITCH;
+      routes.push({ along: 'z', line, min: -HALF - 12, max: HALF + 12 }, { along: 'x', line, min: -HALF - 12, max: HALF + 12 });
     }
+    this.traffic = new Traffic(g, models, routes, { count: low ? 6 : 12 });
     for (let k = 0; k < (low ? 2 : 5); k++) {
       const d = this.districts[(k * 7 + 3) % 25];
       const b = d.buildings[0];
@@ -402,15 +402,7 @@ export class City {
       }
       p.update(dt);
     }
-    for (const r of this.rickshaws) {
-      const u = r.userData;
-      u.s += u.dir * u.speed * dt;
-      const lim = HALF + 12;
-      if (u.s > lim || u.s < -lim) { u.dir *= -1; u.s = Math.max(-lim, Math.min(lim, u.s)); }
-      if (u.along) { r.position.set(u.lane, 0, u.s); r.rotation.y = u.dir > 0 ? 0 : Math.PI; }
-      else { r.position.set(u.s, 0, u.lane); r.rotation.y = u.dir > 0 ? Math.PI / 2 : -Math.PI / 2; }
-      for (const w of u.wheels) w.rotation.x += dt * u.speed * 3;
-    }
+    this.traffic?.update(dt, this.rt.player.pos);
     for (const b of this.birds) {
       const u = b.userData, a = this.t * u.speed + u.phase;
       b.position.set(u.cx + Math.cos(a) * u.r, u.h + Math.sin(a * 2) * 0.6, u.cz + Math.sin(a) * u.r);

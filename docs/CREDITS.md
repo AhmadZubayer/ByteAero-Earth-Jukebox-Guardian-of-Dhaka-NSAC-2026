@@ -19,7 +19,8 @@ The compressed copies live in `game/public/models/`.
 | `bench.glb`, `bush.glb`, `streetlight.glb` | bench, bush, streetlight | Kay Lousberg (KayKit City Builder Bits 1.0) | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 | CC0 1.0 |
 
 Built in code (no outside file): the Dhaka apartment buildings (walls, balconies, shop fronts and
-signboards painted on canvas, black rooftop water tanks), Echo the drone, the cycle rickshaws, the tea stall, kites,
+signboards painted on canvas, black rooftop water tanks), Echo the drone, the cycle rickshaws and green CNG auto-rickshaws (their pullers, drivers and
+passengers reuse the Quaternius characters), the tea stall, kites,
 ponds, cooling centres, white roofs, the globe, all ground textures.
 
 Notes on sourcing:

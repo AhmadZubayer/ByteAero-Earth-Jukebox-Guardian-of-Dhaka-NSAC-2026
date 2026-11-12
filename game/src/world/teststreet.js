@@ -3,10 +3,11 @@ import * as THREE from 'three';
 import { loadModels } from '../core/assets.js';
 import { InstancedModel, matrixFrom } from './instanced.js';
 import { groundTextures, plane } from './ground.js';
-import { makeRickshaw, makeTeaStall } from './props.js';
+import { makeTeaStall } from './props.js';
+import { Traffic } from './traffic.js';
 import { DhakaBuildings } from './dhakaBuildings.js';
 
-export const STREET_MODELS = ['palm', 'streetlight', 'bench'];
+export const STREET_MODELS = ['palm', 'streetlight', 'bench', 'person-a', 'person-c'];
 
 export class TestStreet {
   constructor() {
@@ -48,11 +49,7 @@ export class TestStreet {
     }
     const stall = makeTeaStall(); stall.position.set(-6.2, 0, -8); stall.rotation.y = Math.PI / 2; g.add(stall);
     world.addBox(-6.2, -8, 1.1, 2.4, 1.05);
-    for (let i = 0; i < 3; i++) {
-      const r = makeRickshaw(i); r.position.set(i % 2 ? 2 : -2, 0, -30 + i * 25); r.rotation.y = i % 2 ? Math.PI : 0;
-      r.userData.dir = i % 2 ? -1 : 1;
-      g.add(r); this.rickshaws.push(r);
-    }
+    this.traffic = new Traffic(g, this.models, [{ along: 'z', line: 0, min: -44, max: 44 }], { count: 4 });
     world.setBounds(-9, 9, -L / 2, L / 2);
     rt.stage.scene.add(g);
     rt.player.pos.set(0, 0, 30);
@@ -64,12 +61,7 @@ export class TestStreet {
 
   update(dt) {
     this.t += dt;
-    for (const r of this.rickshaws) {
-      r.position.z += r.userData.dir * dt * 2.2;
-      if (r.position.z > 42) r.position.z = -42;
-      if (r.position.z < -42) r.position.z = 42;
-      for (const w of r.userData.wheels) w.rotation.x += dt * 6 * r.userData.dir;
-    }
+    this.traffic?.update(dt, this.rt?.player.pos);
   }
 
   dispose() {

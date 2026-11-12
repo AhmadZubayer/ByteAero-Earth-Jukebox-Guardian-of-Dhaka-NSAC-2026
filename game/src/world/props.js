@@ -47,13 +47,12 @@ export function makeRickshaw(seed = 0) {
   box.position.set(0, 0.7, -0.35);
   const seat = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.12, 0.5), m('cushion', '#c0392b'));
   seat.position.set(0, 0.92, -0.35);
-  const back = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 0.08), m('panel', '#f1c40f'));
+  const back = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.75, 0.08), m('panel', '#f1c40f'));
   back.position.set(0, 1.15, -0.68);
-  // Folding hood: a half cylinder.
-  const hoodMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.75, 14, 1, true, -Math.PI / 2, Math.PI), m(`hood${seed}`, hood, { side: THREE.DoubleSide }));
-  hoodMesh.rotation.z = Math.PI / 2; hoodMesh.rotation.y = Math.PI / 2;
-  hoodMesh.position.set(0, 1.25, -0.45);
-  hoodMesh.scale.set(1, 1, 1.05);
+  // Folding hood over the back and top of the passenger seat, open to the front.
+  const hoodMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 1.04, 16, 1, true, Math.PI * 0.36, Math.PI * 0.72), m(`hood${seed}`, hood, { side: THREE.DoubleSide }));
+  hoodMesh.rotation.z = Math.PI / 2;
+  hoodMesh.position.set(0, 1.3, -0.3);
   // Painted decoration on the back panel (rickshaw art is very colourful).
   for (let i = 0; i < 3; i++) {
     const dot = new THREE.Mesh(new THREE.CircleGeometry(0.07, 10), m(`deco${i}`, ['#e74c3c', '#27ae60', '#2980b9'][i]));
@@ -109,5 +108,49 @@ export function makeKite(color = '#e63946') {
   shape.moveTo(0, 0.5); shape.lineTo(0.35, 0); shape.lineTo(0, -0.6); shape.lineTo(-0.35, 0); shape.closePath();
   const kite = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshStandardMaterial({ color, side: THREE.DoubleSide, roughness: 0.6 }));
   g.add(kite);
+  return g;
+}
+
+// Green CNG auto-rickshaw (the three-wheeled taxis of Dhaka): body, black roof, side cage, three wheels.
+export function makeCNG(seed = 0) {
+  const g = new THREE.Group();
+  const green = m('cng', '#2e8b3e', { roughness: 0.45, metalness: 0.2 });
+  const dark = m('cngdark', '#1d1f22', { roughness: 0.8 });
+  const steel = m('steel', '#9aa3ad', { metalness: 0.6, roughness: 0.3 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.55, 2.3), green);
+  body.position.set(0, 0.62, 0);
+  const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.6, 0.55, 12, 1, false, -Math.PI / 2, Math.PI), green);
+  nose.rotation.x = 0; nose.position.set(0, 0.62, 1.15);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 2.0), dark);
+  roof.position.set(0, 1.78, -0.1);
+  const windscreen = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.75), new THREE.MeshStandardMaterial({ color: '#9cc7d8', transparent: true, opacity: 0.45, roughness: 0.1 }));
+  windscreen.position.set(0, 1.32, 0.98); windscreen.rotation.x = -0.15;
+  g.add(body, nose, roof, windscreen);
+  // Cage bars on both sides of the passenger area (CNGs have metal mesh doors).
+  for (const sx of [-0.69, 0.69]) {
+    for (let k = 0; k < 7; k++) {
+      const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.85), steel);
+      bar.position.set(sx, 1.32, -0.95 + k * 0.22); g.add(bar);
+    }
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 1.4), steel);
+    rail.position.set(sx, 1.1, -0.3); g.add(rail);
+  }
+  for (const [x, z] of [[-0.68, -0.95], [0.68, -0.95], [-0.68, 0.75], [0.68, 0.75]]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.95), dark);
+    post.position.set(x, 1.3, z); g.add(post);
+  }
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.12, 0.5), m('cngseat', '#6b3a2a'));
+  seat.position.set(0, 0.95, -0.55);
+  const dseat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.4), m('cngseat', '#6b3a2a'));
+  dseat.position.set(0, 0.95, 0.45);
+  const light = new THREE.Mesh(new THREE.CircleGeometry(0.1, 12), m('headlight', '#fff6cc', { emissive: '#fff2b0', emissiveIntensity: 0.6 }));
+  light.position.set(0, 0.75, 1.46);
+  g.add(seat, dseat, light);
+  const wr = wheel(0.28), wl = wheel(0.28), wf = wheel(0.26);
+  wr.position.set(0.6, 0.28, -0.75); wl.position.set(-0.6, 0.28, -0.75); wf.position.set(0, 0.26, 1.05);
+  g.add(wr, wl, wf);
+  g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  g.userData.wheels = [wr, wl, wf];
+  g.userData.kind = 'cng';
   return g;
 }
