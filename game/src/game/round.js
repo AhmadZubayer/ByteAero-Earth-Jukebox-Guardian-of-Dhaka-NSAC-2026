@@ -384,7 +384,9 @@ export class Round {
       const b = this.coins >= 2 && free('roof') ? d.buildings.find((q) => !q.white) : null;
       if (b) { const sx = Math.sign(p.x - b.x) || 1, sz = Math.sign(p.z - b.z) || 1; const along = Math.abs(p.x - b.x) > Math.abs(p.z - b.z); opts.push({ type: 'roof', x: along ? b.x + sx * 5 : b.x, z: along ? b.z : b.z + sz * 5, at: b }); }
       if (!opts.length && this.coins >= 3 && free('pond') && !d.big.used) opts.push({ type: 'pond', x: d.big.x + 3, z: d.big.z, at: { x: d.big.x, z: d.big.z } });
-      if (opts.length) return { district: i, d, need, ...opts[0], left: list.length };
+      // If the fix you already chose fits this block, guide you with that one.
+      const mine = opts.find((o) => o.type === this.selected);
+      if (opts.length) return { district: i, d, need, ...(mine || opts[0]), left: list.length };
     }
     return { stuck: true, left: list.length };
   }
@@ -426,12 +428,13 @@ export class Round {
     }
     const label = { tree: 'plant a tree', roof: 'paint a roof white', pond: 'dig a pond', centre: 'build a cooling centre' }[sg.type];
     const key = { tree: 1, roof: 2, pond: 3, centre: 4 }[sg.type];
-    const here = Math.hypot(sg.x - p.x, sg.z - p.z) < 3.5;
+    const here = Math.hypot(sg.x - p.x, sg.z - p.z) < 3.5 || (sg.type === 'tree' && districtAt(p.x, p.z) === sg.district);
     const selected = this.selected === sg.type;
     const how = here ? (selected ? `You are there: press E${this.rt.input.isTouch ? ' (Place)' : ''}.` : `You are there: press ${key} to choose it, then E.`) : `Go to the yellow light, then ${selected ? 'press E' : `press ${key}, then E`}.`;
     this.h.next(`${sg.d.name} needs ${sg.need.toFixed(1)} °C of cooling. Next: ${label}. ${how}`);
     this.h.where(here ? '' : `Yellow light: ${words(sg.x, sg.z)}`);
     if (showGuide) this.guideTarget.show(sg.at.x, sg.at.z, sg.type === 'roof' ? 0.9 : sg.type === 'tree' ? 0.6 : 1.4); else this.guideTarget.hide();
+    this.guideTarget.setNear(here); // no beam in your face once you are standing in it
     if (sg.type === 'roof' && showGuide) this.guideTarget.group.position.y = sg.at.h || 0;
     else this.guideTarget.group.position.y = 0;
   }

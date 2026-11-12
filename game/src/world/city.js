@@ -254,7 +254,7 @@ export class City {
     const d = this.districts[di];
     const pos = new THREE.Vector3(x, 0.2, z);
     if (type === 'tree') {
-      const p = this.nearestFree(d.treePlots, x, z, 6);
+      const p = this.nearestFree(d.treePlots, x, z, 40); // any free spot in this block
       if (!p) return null;
       p.used = 'planted';
       this.addTree(p.x, p.z, treeKind ?? d.fixes.length % 3, 1, true);
@@ -313,7 +313,7 @@ export class City {
     const di = districtAt(x, z);
     if (di < 0) return null;
     const d = this.districts[di];
-    if (type === 'tree') { const p = this.nearestFree(d.treePlots, x, z, 6); return p ? { x: p.x, z: p.z, r: 1.2 } : null; }
+    if (type === 'tree') { const p = this.nearestFree(d.treePlots, x, z, 40); return p ? { x: p.x, z: p.z, r: 1.2 } : null; }
     if (type === 'roof') {
       let best = null, bd = 9;
       for (const b of d.buildings) { if (b.white) continue; const dist = Math.max(Math.abs(b.x - x), Math.abs(b.z - z)) - 4.1; if (dist < bd) { bd = dist; best = b; } }

@@ -22,12 +22,16 @@ export class Target {
   }
 
   show(x, z, size = 1) {
+    this.setNear(false);
     this.group.position.set(x, 0, z);
     this.group.scale.set(size, 1, size);
     this.group.visible = true;
   }
 
   hide() { this.group.visible = false; }
+
+  // Close by: keep the glowing disc on the ground, drop the beam and arrow.
+  setNear(near) { this.beam.visible = !near; this.arrow.visible = !near; }
 
   update(dt, reducedMotion = false) {
     this.t += dt;
