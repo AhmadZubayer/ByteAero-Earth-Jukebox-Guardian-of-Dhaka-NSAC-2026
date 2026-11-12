@@ -26,7 +26,7 @@ bun run test       # smoke test of the build in a real browser (Playwright + Chr
 ```
 
 Everything is bundled: the game works offline and makes no network requests at runtime.
-Measured download: 0.3 MB for the title screen and 2.4 MB in total by the first Dhaka round (uncompressed; less when the host gzips). No requests go to other sites.
+Measured download: 0.3 MB for the title screen and 4.5 MB in total by the first Dhaka round (uncompressed; less when the host gzips). No requests go to other sites.
 
 ## How sight becomes sound
 

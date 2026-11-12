@@ -41,7 +41,7 @@ Notes on sourcing:
 
 | File in `game/public/nasa/` | What it is | Source |
 |---|---|---|
-| `timelapse/nasa-gistemp-YYYY.jpg` | Global temperature anomaly frames 1884–2022 | NASA Scientific Visualization Studio, visualization 5060, https://svs.gsfc.nasa.gov/5060/ (also on the Earth Information Center, https://earth.gov/) |
+| `timelapse/nasa-gistemp-YYYY.jpg` | Global temperature anomaly frames 1884–2022, 2048 × 1024 (nine years) | NASA Scientific Visualization Studio, visualization 5060, https://svs.gsfc.nasa.gov/5060/ — Science On a Sphere frames `SOSGISS2022c-Rolling1peryear` (2048x1024), converted from TIFF to JPEG (quality 86). Also on the Earth Information Center, https://earth.gov/ |
 | `gistemp-global.csv` | GISTEMP v4 global land-ocean anomaly, monthly and annual | NASA GISS, https://data.giss.nasa.gov/gistemp/ |
 | `nasa-modis-dhaka-lst-YYYY.png` | MODIS Terra 8-day daytime land surface temperature, mid-April 2000/2010/2020/2024 | NASA GIBS / Worldview, layer `MODIS_Terra_L3_Land_Surface_Temp_8Day_Day` |
 | `nasa-modis-dhaka-ndvi-YYYY.png` | MODIS monthly NDVI, April of the same years | NASA GIBS / Worldview |
