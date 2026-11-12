@@ -405,3 +405,5 @@ body.reduced-motion .glow { animation: none; box-shadow: 0 0 0 4px #ffe14d; }
   .hud-compass b { font-size: 12px; bottom: -24px; }
 }
 .fix-btn.full small { color: #c0392b; font-weight: 800; }
+.hud-wave + .hud-restart { margin-left: 0; }
+@media (max-width: 640px) { .hud-restart { font-size: 13px; padding: 6px 8px; } }

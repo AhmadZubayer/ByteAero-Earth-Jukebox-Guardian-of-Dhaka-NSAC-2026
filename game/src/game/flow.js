@@ -63,7 +63,7 @@ async function openMenu() {
     h('h3', {}, 'Controls'),
     h('p', {}, 'W A S D or arrows: move. Shift: run. Space: jump. Q: Echo scans and plays the heat around you. R: Echo says where the heat is. 1 to 4: choose a fix. E: place it (or talk). F: bring the heat wave. H: heat view on or off. Esc: this menu.'),
     h('h3', {}, 'Settings'), settingsPanel(settings, (k) => { if (k === 'heatView') currentRound.refresh(); if (k === 'textOnly') location.reload(); }),
-    h('div', { class: 'row end' }, button('Restart this year', () => close(() => { menuReturn = 'restart'; currentRound.finish(); }), 'secondary small'),
+    h('div', { class: 'row end' }, button('Restart this year', () => close(() => { menuReturn = 'restart'; currentRound.restart(); }), 'secondary small'),
       button('Save and quit to title', () => { saveProgress(window.__state); location.href = location.pathname; }, 'secondary small')),
   ));
 }
@@ -143,7 +143,7 @@ async function playRounds(state) {
       menuReturn = null;
       const outcome = await round.play();
       currentRound = null;
-      if (menuReturn === 'restart') { state.planted = plantedBefore; continue; }
+      if (outcome.aborted || menuReturn === 'restart') { state.planted = plantedBefore; say(`Starting ${def.year} again.`); continue; }
       window.__phase = `report-${def.year}`;
       const action = await reportScreen({ def, cells: round.cells, data, outcome, state, final: !!def.final });
       const lost = outcome.result.pct < LOSE_BELOW;

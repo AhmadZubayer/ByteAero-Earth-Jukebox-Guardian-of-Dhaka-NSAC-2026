@@ -18,6 +18,7 @@ export class Hud {
       this.fixButtons[f.key] = b;
     }
     $('hud-menu').onclick = () => this.onMenu?.();
+    $('hud-restart').onclick = () => this.onRestart?.();
     this.placeBtn = h('button', { type: 'button', class: 'fix-btn place-btn', title: 'Place the chosen fix (key E). You can also click the ground.' }, h('span', { class: 'place-label' }, 'Place'), h('small', {}, 'E · or click the ground'));
     this.placeBtn.addEventListener('click', () => this.onPlace?.());
     bar.append(this.placeBtn);

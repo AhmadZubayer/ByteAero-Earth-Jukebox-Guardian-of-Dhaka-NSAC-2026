@@ -111,6 +111,12 @@ export class Round {
     this.h.onPick = (k) => this.userPick(k);
     this.h.onMenu = () => this.rt.input.fire('menu');
     this.h.onWave = () => this.finish();
+    this.h.onRestart = async () => {
+      if (this.phase !== 'play') return;
+      this.rt.setPlayerActive(false);
+      const yes = await dialogue({ text: `Start ${this.def.year} again from the beginning? Your fixes this year will be removed.`, options: [{ label: 'Yes, restart', value: true }, { label: 'No, keep playing', value: false }] });
+      if (yes) this.restart(); else this.rt.setPlayerActive(true);
+    };
     this.h.onPlace = () => this.act();
     this.h.select(this.selected);
     this.hud();
@@ -159,6 +165,13 @@ export class Round {
     this.startTime = performance.now();
     await new Promise((res) => { this.endPlay = res; });
     rt.setPlayerActive(false);
+    if (this.aborted) { // restart: no heat wave, straight back to the start of the year
+      this.cond?.stop();
+      this.h.show(false); this.h.compass(0, false); this.h.highlight(null);
+      if (this.arrow) this.arrow.visible = false;
+      onFact(null);
+      return { aborted: true };
+    }
     this.phase = 'wave';
     this.hud();
     const result = await this.heatWave();
@@ -199,6 +212,9 @@ export class Round {
   }
 
   finish() { if (this.phase === 'play') { this.phase = 'ending'; this.endPlay?.(); } }
+
+  // Start this year again from the beginning (no heat wave, no report).
+  restart() { if (this.phase === 'play') { this.aborted = true; this.phase = 'ending'; this.endPlay?.(); } }
 
   // Choosing Tree opens the tree picker; the chosen tree is remembered for the next plantings.
   async userPick(key) {
@@ -564,13 +580,22 @@ export class Round {
     const selected = this.selected === sg.type;
     const planTxt = sg.centreOnly ? '' : this.planText(sg.plan.items);
     const spotWord = sg.type === 'tree' ? 'the green circle' : 'the yellow light';
+    if (this.lastFocus !== sg.district) { // a new block to work on
+      if (this.lastFocus != null) this.newBlockUntil = performance.now() + 7000;
+      this.lastFocus = sg.district;
+      this.doneHere = 0;
+    }
+    const newBlock = performance.now() < (this.newBlockUntil || 0);
+    const doneHere = this.fixes.filter((f) => f.district === sg.district).length;
+    const leftHere = Object.values(sg.plan.items || {}).reduce((a, b) => a + b, 0);
+    const stepWord = leftHere > 0 ? ` (${doneHere + 1} of ${doneHere + leftHere} here)` : '';
     // The one thing to do now.
     const treeRoom = plotFree(this.layouts, sg.district, 'tree', this.fixes) && sg.d.treePlots.some((q) => !q.used);
     const treeBlocked = this.selected === 'tree' && sg.type !== 'tree' && !treeRoom;
     if (treeBlocked) { this.h.action(touch ? `No more room for trees here. Tap ${names[sg.type]}.` : `No more room for trees here. Press ${key} for ${names[sg.type]}.`, touch ? null : String(key)); this.h.highlight(sg.type); }
-    else if (!here) { this.h.action(`Follow the arrow to ${spotWord}.`); this.h.highlight(selected ? null : sg.type); }
+    else if (!here) { this.h.action(newBlock ? `Next block: ${sg.d.name}. Follow the arrow to ${spotWord}.` : `Follow the arrow to ${spotWord}${stepWord}.`); this.h.highlight(selected ? null : sg.type); }
     else if (!selected) { this.h.action(touch ? `Tap ${names[sg.type]} below.` : `Press ${key} to choose ${names[sg.type]}.`, touch ? null : String(key)); this.h.highlight(sg.type); }
-    else { this.h.action(`Press ${placeKey} to ${verbs[sg.type]}.`, touch ? null : 'E'); this.h.highlight('place'); }
+    else { this.h.action(`Press ${placeKey} to ${verbs[sg.type]}${stepWord}.`, touch ? null : 'E'); this.h.highlight('place'); }
     this.h.next(sg.centreOnly
       ? `${sg.d.name} cannot be cooled enough with what is left, but a cooling centre keeps its people safe.`
       : `${sg.d.name} is ${sg.need.toFixed(1)} °C too hot. Still to do here: ${planTxt} (game estimate).`);
