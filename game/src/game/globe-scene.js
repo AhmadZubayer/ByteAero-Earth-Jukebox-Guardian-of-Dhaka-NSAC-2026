@@ -22,12 +22,22 @@ class GlobeScene {
     rt.player.root.visible = false;
     rt.echo.group.visible = false;
     s.scene.add(this.globe.group);
-    s.camera.position.set(0, 4, 34);
-    s.camera.lookAt(0, 0, 0);
+    s.setDataView(true);
+    this.frame();
     this.globe.spin.rotation.y = this.globe.faceDhakaRotation() - 1.4;
+  }
+  // Fit the globe to the screen: large on a laptop (shifted right of the readout), higher up on a phone.
+  frame() {
+    const cam = this.rt.stage.camera, aspect = cam.aspect;
+    const d = 27 / Math.min(1, aspect * 0.95);
+    this.home = new THREE.Vector3(0, 0, d);
+    this.look = new THREE.Vector3(aspect > 1.25 ? -4.2 : 0, aspect < 0.8 ? -7.5 : 0, 0);
+    cam.position.copy(this.home);
+    cam.lookAt(this.look);
   }
   update(dt) {
     this.t += dt;
+    if (!this.flying) this.frame();
     if (!this.flying) this.globe.spin.rotation.y += dt * 0.06;
     this.globe.update(dt, this.t);
   }
@@ -38,13 +48,14 @@ class GlobeScene {
     s.scene.fog = this.saved.fog;
     this.rt.player.root.visible = true;
     this.rt.echo.group.visible = true;
+    s.setDataView(false);
     s.camera.position.set(0, 6, 10);
   }
 }
 
 export async function globeIntro(rt, data, settings) {
   const globe = new Globe();
-  await globe.load();
+  await globe.load(rt.stage.renderer);
   const scene = new GlobeScene(globe);
   rt.setScene(scene);
   rt.setPlayerActive(false);
@@ -65,7 +76,8 @@ export async function globeIntro(rt, data, settings) {
       h('div', { class: 'legend-bar', 'aria-hidden': 'true' }),
       h('div', { class: 'legend-labels', 'aria-hidden': 'true' }, h('span', {}, 'cooler'), h('span', {}, 'average 1951–1980'), h('span', {}, 'warmer')),
       frame,
-      h('p', { style: 'font-size:14px;margin:6px 0 0' }, 'Globe frames: NASA Scientific Visualization Studio (visualization 5060), also on the Earth Information Center. Each note is one year of NASA GISTEMP global temperature: higher and tenser as the world warms. A soft click marks a missing year.'),
+      h('p', { class: 'globe-note' }, 'Each note is one year of NASA GISTEMP global temperature: higher and tenser as the world warms.'),
+      h('p', { class: 'globe-source' }, 'Frames: NASA Scientific Visualization Studio, visualization 5060 (also on the Earth Information Center).'),
       live),
     h('div', { class: 'row' }, playBtn, skipBtn),
   ));
@@ -111,8 +123,8 @@ export async function globeIntro(rt, data, settings) {
       const dhaka = globe.marker.position.clone();
       const o = { k: 0 };
       gsap.to(o, { k: 1, duration: dur, ease: 'power3.in', onUpdate: () => {
-        const p = new THREE.Vector3(0, 4, 34).lerp(new THREE.Vector3(0, Math.sin(THREE.MathUtils.degToRad(23.8)) * 10.4, 10.9), o.k);
-        cam.position.copy(p); cam.lookAt(new THREE.Vector3(0, dhaka.y * o.k, 0));
+        const p = scene.home.clone().lerp(new THREE.Vector3(0, Math.sin(THREE.MathUtils.degToRad(23.8)) * 10.4, 10.9), o.k);
+        cam.position.copy(p); cam.lookAt(scene.look.clone().lerp(new THREE.Vector3(0, dhaka.y, 0), o.k));
       }, onComplete: () => setTimeout(res, 250) });
     });
     return done;

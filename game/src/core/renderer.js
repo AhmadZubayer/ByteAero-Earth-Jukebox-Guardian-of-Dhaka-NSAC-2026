@@ -6,7 +6,7 @@ export class Stage {
   constructor(container, { quality = 'high' } = {}) {
     this.container = container;
     this.quality = quality;
-    this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', stencil: false, depth: true });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.NoToneMapping;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -81,8 +81,19 @@ export class Stage {
     this.camera.updateProjectionMatrix();
   }
 
+  // Data view (the globe): no post-processing or tone mapping, so NASA's colours stay exactly as
+  // published, and full device resolution for sharp detail.
+  setDataView(on) {
+    this.dataView = on;
+    this.renderer.toneMapping = on ? THREE.NoToneMapping : (this.quality === 'low' ? THREE.AgXToneMapping : THREE.NoToneMapping);
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, on ? 2 : this.quality === 'low' ? 1 : 1.75));
+    this.scene.traverse((o) => { if (o.material) o.material.needsUpdate = true; });
+    this.resize();
+  }
+
   render(dt) {
-    if (this.usePost) this.composer.render(dt);
+    if (this.dataView) this.renderer.render(this.scene, this.camera);
+    else if (this.usePost) this.composer.render(dt);
     else this.renderer.render(this.scene, this.camera);
   }
 

@@ -238,3 +238,24 @@ body.has-panel #captions { top: max(12px, env(safe-area-inset-top)); bottom: aut
 @media (max-width: 640px) { .hud-wave { font-size: 13px; } }
 html.text-only, html.text-only body { overflow: auto; height: auto; }
 .field select, .panel select { font: inherit; min-height: 44px; padding: 8px 10px; border: 3px solid var(--ink); border-radius: 12px; background: #fff; color: var(--ink); max-width: 100%; }
+
+/* Labels use the readable body font everywhere (the display font is for headings only). */
+.label { font-family: var(--body); letter-spacing: 0.02em; text-transform: none; }
+
+/* Globe readout: a dark glass card that sits quietly in space instead of a cream plate. */
+.globe-readout { background: rgba(9, 16, 34, 0.72); color: #e9f0ff; border: 1px solid rgba(160, 200, 255, 0.28); border-radius: 18px; padding: 14px 18px; max-width: 380px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.globe-readout .kicker { font-family: var(--body); font-weight: 700; color: #9fd0ff; letter-spacing: 0.14em; font-size: 12px; }
+.globe-readout .label.real { color: #9fd0ff; border-width: 1px; font-size: 11px; padding: 2px 8px; }
+.globe-readout h2 { color: #fff; font-family: var(--body) !important; font-size: 18px !important; font-weight: 700; letter-spacing: 0; }
+.globe-readout .big { font-family: var(--body); font-weight: 800; font-size: 54px; line-height: 1; margin: 8px 0 2px; color: #fff; font-variant-numeric: tabular-nums; }
+.globe-readout .big + div { font-size: 16px; color: #ffd9a8; font-weight: 600; }
+.globe-readout .legend-bar { height: 8px; border: none; border-radius: 4px; margin-top: 10px; }
+.globe-readout .legend-labels { color: #b9c7e6; font-size: 11px; }
+.globe-note { font-size: 13px; color: #d5def3; margin: 8px 0 2px; }
+.globe-source { font-size: 11px; color: #8fa0c4; margin: 0; }
+.globe-hud .btn.secondary { background: rgba(255, 255, 255, 0.92); }
+@media (max-width: 640px) {
+  .globe-readout { max-width: none; width: 100%; padding: 10px 14px; }
+  .globe-readout .big { font-size: 40px; }
+  .globe-hud { justify-content: center; }
+}

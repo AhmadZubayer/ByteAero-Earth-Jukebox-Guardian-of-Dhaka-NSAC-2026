@@ -17,26 +17,37 @@ export class Globe {
     this.radius = 10;
   }
 
-  async load() {
+  async load(renderer) {
     const loader = new THREE.TextureLoader();
     this.textures = await Promise.all(FRAME_YEARS.map((y) => loader.loadAsync(nasaUrl(`timelapse/nasa-gistemp-${y}.jpg`))));
     this.blue = await loader.loadAsync(nasaUrl('earth-blue-marble-2002.jpg'));
-    for (const t of [...this.textures, this.blue]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; }
+    const aniso = renderer ? renderer.capabilities.getMaxAnisotropy() : 8;
+    for (const t of [...this.textures, this.blue]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = aniso; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; }
+    const img = this.textures[0].image;
+    const texel = new THREE.Vector2(1 / (img.width || 1024), 1 / (img.height || 512));
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { a: { value: this.textures[0] }, b: { value: this.textures[1] }, mixv: { value: 0 }, sun: { value: new THREE.Vector3(1, 0.4, 0.8).normalize() } },
+      uniforms: { a: { value: this.textures[0] }, b: { value: this.textures[1] }, mixv: { value: 0 }, texel: { value: texel }, sun: { value: new THREE.Vector3(0.6, 0.35, 1).normalize() } },
       vertexShader: `varying vec2 vUv; varying vec3 vN; void main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-      fragmentShader: `uniform sampler2D a; uniform sampler2D b; uniform float mixv; uniform vec3 sun; varying vec2 vUv; varying vec3 vN;
-        void main(){ vec3 c = mix(texture2D(a, vUv).rgb, texture2D(b, vUv).rgb, mixv);
-          float l = 0.55 + 0.6 * max(dot(vN, sun), 0.0);
+      // Light unsharp mask to keep coastlines crisp when the frames are enlarged; almost flat
+      // lighting so the colours stay true to NASA's scale.
+      fragmentShader: `uniform sampler2D a; uniform sampler2D b; uniform float mixv; uniform vec2 texel; uniform vec3 sun; varying vec2 vUv; varying vec3 vN;
+        vec3 sharp(sampler2D t, vec2 uv) {
+          vec3 c = texture2D(t, uv).rgb;
+          vec3 n = (texture2D(t, uv + vec2(texel.x, 0.0)).rgb + texture2D(t, uv - vec2(texel.x, 0.0)).rgb
+                  + texture2D(t, uv + vec2(0.0, texel.y)).rgb + texture2D(t, uv - vec2(0.0, texel.y)).rgb) * 0.25;
+          return clamp(c + (c - n) * 0.4, 0.0, 1.0);
+        }
+        void main(){ vec3 c = mix(sharp(a, vUv), sharp(b, vUv), mixv);
+          float l = mix(0.8, 1.04, max(dot(vN, sun), 0.0));
           gl_FragColor = vec4(c * l, 1.0);
           #include <colorspace_fragment>
         }`,
     });
     this.globe = new THREE.Mesh(new THREE.SphereGeometry(this.radius, 96, 64), this.mat);
-    const atmo = new THREE.Mesh(new THREE.SphereGeometry(this.radius * 1.06, 64, 32), new THREE.ShaderMaterial({
+    const atmo = new THREE.Mesh(new THREE.SphereGeometry(this.radius * 1.022, 64, 32), new THREE.ShaderMaterial({
       transparent: true, side: THREE.BackSide, depthWrite: false,
       vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
-      fragmentShader: 'varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1.0 - abs(dot(vN, vV)), 2.5); gl_FragColor = vec4(0.45, 0.75, 1.0, f * 0.9); }',
+      fragmentShader: 'varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1.0 - abs(dot(vN, vV)), 4.0); gl_FragColor = vec4(0.55, 0.8, 1.0, f * 0.55); }',
     }));
     // Dhaka marker.
     this.marker = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), new THREE.MeshBasicMaterial({ color: '#ffd34d' }));
