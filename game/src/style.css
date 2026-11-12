@@ -404,3 +404,4 @@ body.reduced-motion .glow { animation: none; box-shadow: 0 0 0 4px #ffe14d; }
   .hud-compass span { top: 5px !important; margin-left: -10px !important; border-width: 10px !important; border-bottom-width: 24px !important; transform-origin: 10px 27px !important; }
   .hud-compass b { font-size: 12px; bottom: -24px; }
 }
+.fix-btn.full small { color: #c0392b; font-weight: 800; }

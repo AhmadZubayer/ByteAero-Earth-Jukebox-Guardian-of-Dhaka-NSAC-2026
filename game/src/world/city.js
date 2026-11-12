@@ -146,6 +146,7 @@ export class City {
         d.treePlots.push({ x: cx + sx * 6.6 + sx * 2.2, z: cz + sz * 6.6 - sz * 2.2 });
       }
       for (const [ex, ez] of [[0, -8.2], [0, 8.2], [-8.2, 0], [8.2, 0]]) d.treePlots.push({ x: cx + ex, z: cz + ez });
+      for (const [ex, ez] of [[0, -5.0], [0, 5.0], [-5.0, 0], [5.0, 0]]) d.treePlots.push({ x: cx + ex, z: cz + ez, inner: true });
       // Existing trees (from NDVI) fill the first plots.
       for (let t = 0; t < layout.existingTrees; t++) {
         const p = d.treePlots[t];

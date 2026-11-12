@@ -78,6 +78,14 @@ export class Hud {
     }
   }
 
+  // "3 spots here" under the Tree button (null when not in a block).
+  treeSpots(n) {
+    const sm = this.fixButtons.tree.querySelector('small');
+    const txt = n == null ? '1 coin' : n > 0 ? `1 coin · ${n} spot${n > 1 ? 's' : ''} here` : '1 coin · no room here';
+    if (sm.textContent !== txt) sm.textContent = txt;
+    this.fixButtons.tree.classList.toggle('full', n === 0);
+  }
+
   placeState(ok, label) {
     this.placeBtn.classList.toggle('ready', ok);
     const l = this.placeBtn.querySelector('.place-label');

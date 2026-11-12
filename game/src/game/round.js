@@ -258,6 +258,17 @@ export class Round {
     const target = di < 0 ? null : this.city.preview(this.selected, a.x, a.z);
     if (di < 0 || !target || !plotFree(this.layouts, di, this.selected, this.fixes)) {
       const name = di >= 0 ? this.city.districts[di].name : 'here';
+      const roomForTrees = di >= 0 && plotFree(this.layouts, di, 'tree', this.fixes) && this.city.districts[di].treePlots.some((q) => !q.used);
+      if (this.selected === 'tree' && di >= 0 && !roomForTrees) {
+        // No room for more trees in this block: switch to what the plan needs next.
+        const sg = this.suggest();
+        const alt = sg && sg.type && sg.type !== 'tree' ? sg.type : (plotFree(this.layouts, di, 'roof', this.fixes) && this.coins >= 2 ? 'roof' : plotFree(this.layouts, di, 'pond', this.fixes) && this.coins >= 3 ? 'pond' : null);
+        if (alt) {
+          this.pick(alt);
+          say(`${name} has no room for more trees. I picked ${FIXES[alt].label} for you: follow the arrow, then press E.`, { urgent: true });
+          return;
+        }
+      }
       say(this.selected === 'roof' ? `No roof to paint ${di >= 0 ? `in ${name}` : 'here'}. Stand next to a building.`
         : this.selected === 'tree' ? (di < 0 ? 'Walk into a city block first.' : this.city.districts[di].treePlots.some((q) => !q.used) && plotFree(this.layouts, di, 'tree', this.fixes) ? 'Trees go on the green circles. Follow the arrow to the next one, then press E.' : `${name} has no room for more trees. Try a white roof, or another block.`)
         : (di < 0 ? 'Walk into a city block first.' : `${name}'s middle square is already used. Try another block.`));
@@ -400,6 +411,7 @@ export class Round {
     const aimAt = this.aim(null);
     const t = this.city.preview(this.selected, aimAt.x, aimAt.z);
     const canPlace = !!t && this.coins >= FIXES[this.selected].cost && plotFree(this.layouts, districtAt(aimAt.x, aimAt.z), this.selected, this.fixes);
+    { const di2 = districtAt(p.x, p.z); const left = di2 < 0 ? null : Math.min(this.city.districts[di2].treePlots.filter((q) => !q.used).length, this.layouts[di2].freeTrees - this.fixes.filter((f) => f.district === di2 && f.type === 'tree').length); this.h.treeSpots(left); }
     this.h.placeState(canPlace, this.selected === 'tree' ? (this.tree ? `Plant ${this.tree.name}` : 'Choose a tree') : `Place ${FIXES[this.selected].label}`);
     if (t && canPlace) {
       this.ring.visible = true;
@@ -553,7 +565,10 @@ export class Round {
     const planTxt = sg.centreOnly ? '' : this.planText(sg.plan.items);
     const spotWord = sg.type === 'tree' ? 'the green circle' : 'the yellow light';
     // The one thing to do now.
-    if (!here) { this.h.action(`Follow the arrow to ${spotWord}.`); this.h.highlight(selected ? null : sg.type); }
+    const treeRoom = plotFree(this.layouts, sg.district, 'tree', this.fixes) && sg.d.treePlots.some((q) => !q.used);
+    const treeBlocked = this.selected === 'tree' && sg.type !== 'tree' && !treeRoom;
+    if (treeBlocked) { this.h.action(touch ? `No more room for trees here. Tap ${names[sg.type]}.` : `No more room for trees here. Press ${key} for ${names[sg.type]}.`, touch ? null : String(key)); this.h.highlight(sg.type); }
+    else if (!here) { this.h.action(`Follow the arrow to ${spotWord}.`); this.h.highlight(selected ? null : sg.type); }
     else if (!selected) { this.h.action(touch ? `Tap ${names[sg.type]} below.` : `Press ${key} to choose ${names[sg.type]}.`, touch ? null : String(key)); this.h.highlight(sg.type); }
     else { this.h.action(`Press ${placeKey} to ${verbs[sg.type]}.`, touch ? null : 'E'); this.h.highlight('place'); }
     this.h.next(sg.centreOnly

@@ -72,8 +72,10 @@ export function layoutDistrict(cell, i) {
   const corners = [0, 1, 2, 3].sort((a, b) => hash(i, a) - hash(i, b));
   const buildingCorners = corners.slice(0, nBuildings);
   const openCorners = corners.slice(nBuildings);
-  const treePlots = 4 + openCorners.length * 2;
-  const existing = Math.min(treePlots - 1, Math.round(ndvi * treePlots * 0.75));
+  // Tree spots: two in each open corner, four between the buildings, four around the middle square.
+  const outer = 4 + openCorners.length * 2;
+  const treePlots = outer + 4;
+  const existing = Math.min(outer - 1, Math.round(ndvi * outer * 0.75)); // trees already growing (from NDVI)
   return { nBuildings, buildingCorners, openCorners, treePlots, existingTrees: existing, freeTrees: treePlots - existing, roofs: nBuildings, bigSite: 1 };
 }
 
