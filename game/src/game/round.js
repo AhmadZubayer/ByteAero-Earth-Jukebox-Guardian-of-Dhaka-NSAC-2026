@@ -71,7 +71,8 @@ export class Round {
   // Recompute the forecast after any change; update overlay, music and look.
   refresh() {
     this.forecast = resolve(this.cells, this.spots, this.wave, this.fixes);
-    const before = this.forecast.districts.map((d) => Math.max(0, d.excess));
+    // Colour each block by how much cooling it still needs: green = safe, amber = a little, red = a lot.
+    const before = this.forecast.districts.map((d) => (d.safe ? 0.25 : 1.15 + Math.min(1.45, Math.max(0, d.excess - DANGER) / 1.6)));
     const hide = this.def.hidden ? this.spots.filter((s) => !this.found.has(s)) : [];
     this.city.setOverlay(before, this.settings.heatView && !this.def.hidden, hide);
     const unsafe = this.forecast.districts.filter((d) => !d.safe).length;
@@ -269,13 +270,26 @@ export class Round {
     const d = this.city.districts[placed.district];
     const before = this.forecast.districts[placed.district];
     this.refresh();
+    this.lastDistrict = -1; // refresh the "you are here" line with the new numbers
     const after = this.forecast.districts[placed.district];
     this.chime(after.safe && !before.safe);
+    if (after.safe && !before.safe) this.blockSafe(placed.district);
     learn(FIX_FACT[this.selected], this.state);
     const status = after.cooled ? 'This block is now safe from the wave' : after.sheltered ? 'People here can shelter, but the block is still hot' : `This block still needs about ${Math.max(0.1, after.excess - DANGER).toFixed(1)} more degrees of cooling`;
     const away = this.selected === 'tree' && placed.at && !placed.at.exact ? ` It went on the open ground ${directionWords(relAngle(this.rt.follow.yaw, placed.at.x - p.x, placed.at.z - p.z), Math.hypot(placed.at.x - p.x, placed.at.z - p.z))}.` : '';
     say(`${this.selected === 'tree' ? this.tree.name : f.label} placed in ${d.name}.${away} ${status} (game estimate). ${this.coins} coin${this.coins === 1 ? '' : 's'} left.`);
     this.hud();
+  }
+
+  // A block just became safe: make it obvious.
+  blockSafe(i) {
+    if (this.focus === i) this.focus = null;
+    const d = this.city.districts[i];
+    const safe = this.forecast.districts.filter((x) => x.safe).length;
+    this.city.effects.sparkle(new THREE.Vector3(d.cx, 2, d.cz));
+    this.city.flashSafe(i);
+    this.h.celebrate(`✔ ${d.name} is safe!`);
+    say(`${d.name} is now safe from the heat wave! ${safe} of ${N} blocks are safe. ${safe >= Math.ceil(N / 2) ? 'That is enough to win; more safe blocks earn more stars.' : `You need ${Math.ceil(N / 2) - safe} more to win.`}`, { urgent: true });
   }
 
   chime(good) {
@@ -391,37 +405,97 @@ export class Round {
     } else this.ring.visible = false;
     if (Math.floor(this.time) !== this.lastShown) { this.lastShown = Math.floor(this.time); this.hud(); }
     this.guideTarget?.update(dt, this.settings.reducedMotion);
+    this.updateBlockLabel();
     if (!this.lastGuide || performance.now() - this.lastGuide > 250) { this.lastGuide = performance.now(); this.guide(); }
   }
 
+  // A label floating over the block you are told to cool: its name, a cooling bar, what is left.
+  updateBlockLabel() {
+    const L = this.labelFor;
+    if (!L || !this.h) { this.h?.blockLabel(null); return; }
+    const d = this.city.districts[L.i], r = this.forecast.districts[L.i];
+    const v = new THREE.Vector3(L.at.x, L.at.y, L.at.z).project(this.rt.stage.camera);
+    if (v.z > 1 || Math.abs(v.x) > 1.1 || Math.abs(v.y) > 1.1) { this.h.blockLabel(null); return; }
+    const el = this.rt.stage.renderer.domElement.getBoundingClientRect();
+    const sx = el.left + (v.x + 1) / 2 * el.width, sy = el.top + (1 - v.y) / 2 * el.height;
+    const card = this.h.mission.getBoundingClientRect();
+    if (sy < 110 || (sx < card.right + 90 && sy < card.bottom + 40)) { this.h.blockLabel(null); return; } // keep clear of the HUD
+    const done = r.need > 0 ? Math.max(0, Math.min(1, 1 - Math.max(0, r.excess - DANGER) / r.need)) : 1;
+    this.h.blockLabel({ x: el.left + (v.x + 1) / 2 * el.width, y: el.top + (1 - v.y) / 2 * el.height, name: `${d.name} · ${Math.round(done * 100)}% cooled`, done, text: L.text });
+  }
+
   // ---------- Guidance: the one next thing to do, and where ----------
+  // A plan that can really make block i safe with the room it has and the coins you have:
+  // a pond first if it needs a lot, then trees, then white roofs. Returns { items, reachable }.
+  planFor(i) {
+    const d = this.city.districts[i], r = this.forecast.districts[i];
+    let need = Math.max(0, r.excess - DANGER), coins = this.coins;
+    let trees = this.layouts[i].freeTrees - this.fixes.filter((f) => f.district === i && f.type === 'tree').length;
+    let roofs = d.buildings.filter((b) => !b.white).length;
+    let big = !d.big.used && this.rt.world.isFree(d.big.x, d.big.z, 2.6);
+    const items = { pond: 0, tree: 0, roof: 0 };
+    for (let guard = 0; guard < 20 && need > 1e-3; guard++) {
+      if (big && coins >= 3 && need >= 1.6) { items.pond++; big = false; coins -= 3; need -= FIXES.pond.cool; }
+      else if (trees > 0 && coins >= 1) { items.tree++; trees--; coins -= 1; need -= FIXES.tree.cool; }
+      else if (big && coins >= 3) { items.pond++; big = false; coins -= 3; need -= FIXES.pond.cool; }
+      else if (roofs > 0 && coins >= 2) { items.roof++; roofs--; coins -= 2; need -= FIXES.roof.cool; }
+      else break;
+    }
+    return { items, reachable: need <= 1e-3, centre: !d.big.used && this.coins >= 4 };
+  }
+
+  planText(items) {
+    const parts = [];
+    if (items.pond) parts.push(`💧 ${items.pond} pond`);
+    if (items.tree) parts.push(`🌳 ${items.tree} tree${items.tree > 1 ? 's' : ''}`);
+    if (items.roof) parts.push(`🏠 ${items.roof} white roof${items.roof > 1 ? 's' : ''}`);
+    return parts.join(' + ');
+  }
+
+  // Where to stand / aim for a fix type in block i.
+  spotFor(type, i) {
+    const p = this.rt.player.pos, d = this.city.districts[i];
+    if (type === 'pond' || type === 'centre') return { x: d.big.x + 3, z: d.big.z, at: { x: d.big.x, z: d.big.z } };
+    if (type === 'tree') { const q = d.treePlots.find((t) => !t.used); return q ? { x: q.x, z: q.z, at: q } : null; }
+    const b = d.buildings.find((q) => !q.white);
+    if (!b) return null;
+    const sx = Math.sign(p.x - b.x) || 1, sz = Math.sign(p.z - b.z) || 1, along = Math.abs(p.x - b.x) > Math.abs(p.z - b.z);
+    return { x: along ? b.x + sx * 5 : b.x, z: along ? b.z : b.z + sz * 5, at: b };
+  }
+
   suggest() {
     const p = this.rt.player.pos;
     const list = this.forecast.districts.map((r, i) => ({ r, i })).filter(({ r }) => !r.safe);
     if (!list.length) return { done: true };
     const dist = (i) => { const c = districtCentre(i); return Math.hypot(c.x - p.x, c.z - p.z); };
-    // Prefer the most endangered block near the player.
     list.sort((a, b) => (dist(a.i) - a.r.excess * 25) - (dist(b.i) - b.r.excess * 25));
-    for (const { r, i } of list) {
+    const tryBlock = (i) => {
+      const plan = this.planFor(i);
+      const order = Object.entries(plan.items).filter(([, n]) => n > 0).map(([k]) => k);
+      if (!plan.reachable) return null; // cannot be made safe with what is left; try another block
+      // Do the fix you already chose first, if it is part of the plan.
+      const type = order.includes(this.selected) ? this.selected : order[0];
+      const spot = this.spotFor(type, i);
+      if (!spot) return null;
       const d = this.city.districts[i];
-      const need = Math.max(0.1, r.excess - DANGER);
-      const free = (t) => plotFree(this.layouts, i, t, this.fixes);
-      const opts = [];
-      if (need >= 1.0 && this.coins >= 3 && free('pond') && !d.big.used) opts.push({ type: 'pond', x: d.big.x + 3, z: d.big.z, at: { x: d.big.x, z: d.big.z } });
-      const plot = this.coins >= 1 && free('tree') ? d.treePlots.find((q) => !q.used) : null;
-      if (plot) opts.push({ type: 'tree', x: plot.x, z: plot.z, at: plot });
-      const b = this.coins >= 2 && free('roof') ? d.buildings.find((q) => !q.white) : null;
-      if (b) { const sx = Math.sign(p.x - b.x) || 1, sz = Math.sign(p.z - b.z) || 1; const along = Math.abs(p.x - b.x) > Math.abs(p.z - b.z); opts.push({ type: 'roof', x: along ? b.x + sx * 5 : b.x, z: along ? b.z : b.z + sz * 5, at: b }); }
-      if (!opts.length && this.coins >= 3 && free('pond') && !d.big.used) opts.push({ type: 'pond', x: d.big.x + 3, z: d.big.z, at: { x: d.big.x, z: d.big.z } });
-      // If the fix you already chose fits this block, guide you with that one.
-      const mine = opts.find((o) => o.type === this.selected);
-      if (opts.length) return { district: i, d, need, ...(mine || opts[0]), left: list.length };
+      return { district: i, d, need: Math.max(0.1, this.forecast.districts[i].excess - DANGER), type, plan, ...spot, left: list.length };
+    };
+    // Stay with the block you are working on until it is safe.
+    if (this.focus != null && !this.forecast.districts[this.focus].safe) { const r = tryBlock(this.focus); if (r) return r; }
+    for (const { i } of list) { const r = tryBlock(i); if (r) { this.focus = i; return r; } }
+    // Nothing can be made fully safe: a cooling centre still protects the people of the hottest block.
+    for (const { i } of list) {
+      const d = this.city.districts[i];
+      if (!d.big.used && this.coins >= 4 && !this.forecast.districts[i].sheltered) return { district: i, d, need: Math.max(0.1, this.forecast.districts[i].excess - DANGER), type: 'centre', plan: { items: {} }, centreOnly: true, ...this.spotFor('centre', i), left: list.length };
     }
     return { stuck: true, left: list.length };
   }
 
   guide() {
     if (this.phase !== 'play' || !this.h) return;
+    this.labelFor = null;
+    const safeNow = this.forecast.districts.filter((x) => x.safe).length;
+    this.h.setScore(safeNow, N);
     const p = this.rt.player.pos, yaw = this.rt.follow.yaw;
     const unfound = this.spots.filter((s) => !this.found.has(s));
     const elapsed = (performance.now() - this.startTime) / 1000;
@@ -450,7 +524,7 @@ export class Round {
       this.h.next('Every block is safe from the wave! Press F (or Bring the wave) when you are ready.');
       this.h.where(''); this.guideTarget.hide(); return;
     }
-    this.h.setSteps(this.def.year, { find: ['Find the heat ✓', 'done'], protect: [`Protect blocks: ${sg.left} still in danger`, 'now'], wave: [waveLabel, 'todo'] });
+    this.h.setSteps(this.def.year, { find: ['Find the heat ✓', 'done'], protect: [`Make blocks safe: ${sg.left} still too hot`, 'now'], wave: [waveLabel, 'todo'] });
     if (sg.stuck) {
       this.h.next(this.coins < 1 ? 'Out of coins for this year. Press F to bring the heat wave.' : 'No room left for the fixes you can afford. Press F when ready.');
       this.h.where(''); this.guideTarget.hide(); return;
@@ -460,7 +534,12 @@ export class Round {
     const here = Math.hypot(sg.x - p.x, sg.z - p.z) < 3.5 || (sg.type === 'tree' && districtAt(p.x, p.z) === sg.district);
     const selected = this.selected === sg.type;
     const how = here ? (selected ? `You are there: press E${this.rt.input.isTouch ? ' (Place)' : ''}.` : `You are there: press ${key} to choose it, then E.`) : `Go to the yellow light, then ${selected ? 'press E' : `press ${key}, then E`}.`;
-    this.h.next(`${sg.d.name} needs ${sg.need.toFixed(1)} °C of cooling. Next: ${label}. ${how}`);
+    const planTxt = sg.centreOnly ? '' : this.planText(sg.plan.items);
+    const head = sg.centreOnly
+      ? `${sg.d.name} cannot be cooled enough with what is left, but a cooling centre will keep its people safe.`
+      : `${sg.d.name} is ${sg.need.toFixed(1)} °C too hot. To make it safe: ${planTxt} (game estimate).`;
+    this.h.next(`${head} Now: ${label}. ${how}`);
+    this.labelFor = here ? null : { i: sg.district, text: sg.centreOnly ? '⛺ cooling centre' : planTxt || 'almost safe', at: { x: sg.at.x, z: sg.at.z, y: sg.type === 'roof' ? (sg.at.h || 0) + 3 : 4.2 } };
     this.h.where(here ? '' : `Yellow light: ${words(sg.x, sg.z)}`);
     if (showGuide) this.guideTarget.show(sg.at.x, sg.at.z, sg.type === 'roof' ? 0.9 : sg.type === 'tree' ? 0.6 : 1.4); else this.guideTarget.hide();
     this.guideTarget.setNear(here); // no beam in your face once you are standing in it

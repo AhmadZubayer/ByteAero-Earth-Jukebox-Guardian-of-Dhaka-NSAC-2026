@@ -30,7 +30,16 @@ export class Hud {
     this.hereEl = h('p', { class: 'mission-here', 'aria-hidden': 'true' });
     this.tipEl = h('div', { class: 'mission-tip', hidden: true });
     this.kicker = h('p', { class: 'mission-kicker' });
-    this.mission = h('section', { class: 'mission', 'aria-label': 'Your mission' }, this.kicker, stepList, this.nextEl, this.whereEl, this.hereEl, this.tipEl);
+    this.scoreText = h('p', { class: 'score-text' });
+    this.scoreFill = h('span', { class: 'score-fill' });
+    const marks = [50, 75, 90].map((pc, k) => h('i', { class: 'score-mark', style: `left:${pc}%`, title: `${k + 1} star${k ? 's' : ''}` }, '★'.repeat(k + 1)));
+    this.scoreEl = h('div', { class: 'mission-score' }, this.scoreText, h('div', { class: 'score-bar', 'aria-hidden': 'true' }, this.scoreFill, marks));
+    this.mission = h('section', { class: 'mission', 'aria-label': 'Your mission' }, this.kicker, stepList, this.scoreEl, this.nextEl, this.whereEl, this.hereEl, this.tipEl);
+    $('hud').querySelector('.block-label')?.remove();
+    $('hud').querySelector('.celebrate')?.remove();
+    this.labelEl = h('div', { class: 'block-label', 'aria-hidden': 'true', hidden: true });
+    this.celebrateEl = h('div', { class: 'celebrate', 'aria-hidden': 'true', hidden: true });
+    $('hud').append(this.labelEl, this.celebrateEl);
     $('hud').append(this.mission);
     $('hud-wave').onclick = () => this.onWave?.();
   }
@@ -72,6 +81,32 @@ export class Hud {
     this.placeBtn.classList.toggle('ready', ok);
     const l = this.placeBtn.querySelector('.place-label');
     if (l.textContent !== label) l.textContent = label;
+  }
+
+  // Safe blocks so far, with the 1/2/3-star marks (50 / 75 / 90 % of the city).
+  setScore(safe, total) {
+    const pct = Math.round((safe / total) * 100);
+    const win = Math.ceil(total * 0.5);
+    const txt = safe >= win ? `Safe blocks: ${safe} of ${total} (${pct}%) · enough to win ★` : `Safe blocks: ${safe} of ${total} (${pct}%) · ${win - safe} more to win`;
+    if (this.scoreText.textContent !== txt) this.scoreText.textContent = txt;
+    this.scoreFill.style.width = `${pct}%`;
+    this.scoreFill.classList.toggle('win', safe >= win);
+  }
+
+  blockLabel(o) {
+    if (!o) { this.labelEl.hidden = true; return; }
+    this.labelEl.hidden = false;
+    this.labelEl.style.transform = `translate(${Math.round(o.x)}px, ${Math.round(o.y)}px) translate(-50%, -100%)`;
+    const html = `<b>${o.name}</b><span class="bl-bar"><span style="width:${Math.round(o.done * 100)}%"></span></span><span class="bl-text">${o.text}</span>`;
+    if (this.labelEl._h !== html) { this.labelEl.innerHTML = html; this.labelEl._h = html; }
+  }
+
+  celebrate(text) {
+    this.celebrateEl.textContent = text;
+    this.celebrateEl.hidden = false;
+    this.celebrateEl.classList.remove('go'); void this.celebrateEl.offsetWidth; this.celebrateEl.classList.add('go');
+    clearTimeout(this.celTimer);
+    this.celTimer = setTimeout(() => { this.celebrateEl.hidden = true; }, 2200);
   }
 
   next(text) { if (this.nextEl.textContent !== text) this.nextEl.textContent = text; }

@@ -383,8 +383,15 @@ export class City {
     this.districts.forEach((d, i) => {
       const show = visible && !hideIdx.includes(i);
       heatColor(values[i], d.overlay.material.color);
-      d.overlay.material.opacity = show ? 0.18 + Math.min(0.32, values[i] * 0.12) : 0;
+      d.overlay.material.opacity = show ? 0.12 + Math.min(0.2, values[i] * 0.08) : 0;
     });
+  }
+
+  // Briefly flash a block green when it becomes safe.
+  flashSafe(i) {
+    const m = this.districts[i].overlay.material;
+    m.color.set('#3fd17a');
+    gsap.fromTo(m, { opacity: 0.6 }, { opacity: 0.16, duration: 1.6, ease: 'power2.out' });
   }
 
   // After the wave: tint each district by outcome and set people's reactions.

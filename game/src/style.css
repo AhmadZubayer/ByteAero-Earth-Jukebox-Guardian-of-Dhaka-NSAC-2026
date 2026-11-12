@@ -353,3 +353,28 @@ body.has-panel #captions { display: none; }
 .place-btn.ready { background: var(--green); color: #fff; box-shadow: 0 0 0 3px #bdf0b6; }
 .place-btn.ready small { color: #e8ffe4; }
 @media (pointer: coarse), (max-width: 640px) { .place-btn { display: none; } }
+
+/* Win progress in the mission card */
+.mission-score { margin: 2px 0 8px; }
+.score-text { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: #e9f0ff; }
+.score-bar { position: relative; height: 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.14); overflow: visible; }
+.score-fill { display: block; height: 100%; width: 0; border-radius: 6px; background: linear-gradient(90deg, #f08a3c, #f4c64e); transition: width 0.4s; }
+.score-fill.win { background: linear-gradient(90deg, #3fb6a8, #3fd17a); }
+.score-mark { position: absolute; top: 11px; transform: translateX(-50%); font-style: normal; font-size: 9px; color: #ffe14d; letter-spacing: -1px; }
+.score-mark::after { content: ''; position: absolute; left: 50%; top: -12px; width: 2px; height: 12px; background: rgba(255, 225, 77, 0.7); }
+.mission-score { padding-bottom: 10px; }
+
+/* Label over the block to cool */
+.block-label { position: fixed; left: 0; top: 0; pointer-events: none; background: rgba(9, 16, 34, 0.86); color: #fff; border: 1px solid rgba(255, 225, 77, 0.6); border-radius: 12px; padding: 6px 10px; font-size: 14px; display: grid; gap: 4px; min-width: 150px; text-align: center; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+.block-label[hidden] { display: none; }
+.block-label::after { content: ''; position: absolute; left: 50%; bottom: -8px; margin-left: -8px; border: 8px solid transparent; border-bottom: 0; border-top-color: rgba(255, 225, 77, 0.8); }
+.bl-bar { display: block; height: 8px; border-radius: 5px; background: rgba(255, 255, 255, 0.18); overflow: hidden; }
+.bl-bar span { display: block; height: 100%; background: linear-gradient(90deg, #f4c64e, #3fd17a); transition: width 0.4s; }
+.bl-text { font-weight: 800; color: #ffe14d; }
+
+/* Big "block is safe" message */
+.celebrate { position: fixed; left: 50%; top: 34%; transform: translate(-50%, -50%); pointer-events: none; font: 800 clamp(26px, 5vw, 46px) var(--body); color: #fff; background: rgba(31, 150, 90, 0.9); padding: 10px 24px; border-radius: 18px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35); }
+.celebrate[hidden] { display: none; }
+.celebrate.go { animation: celebrate 2.2s ease-out forwards; }
+@keyframes celebrate { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1); } }
+@media (max-width: 640px) { .mission-score { margin: 0 0 4px; } .score-text { font-size: 12px; } .block-label { font-size: 12px; min-width: 120px; } }
