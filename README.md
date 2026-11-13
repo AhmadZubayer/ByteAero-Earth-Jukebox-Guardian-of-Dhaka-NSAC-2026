@@ -218,16 +218,18 @@ Browser tests require Chrome or a Playwright browser. Set `CHROME_PATH` if Chrom
 ## Deploy to Vercel
 
 1. Push the repository to GitHub and import it as a new Vercel project.
-2. Set **Root Directory** to **`game`** and choose the **Vite** framework preset.
-3. Leave command overrides disabled. `game/vercel.json` configures:
+2. Leave **Root Directory** as the repository root and leave command overrides disabled. The root
+   `vercel.json` configures:
 
    | Setting | Value |
    | --- | --- |
-   | Install command | `bun install --frozen-lockfile` |
-   | Build command | `bun run build` |
-   | Output directory | `dist` |
+   | Install command | `cd game && bun install --frozen-lockfile` |
+   | Build command | `cd game && bun run build` |
+   | Output directory | `game/dist` |
 
-4. Click **Deploy**. No environment variables, API keys, database or backend are needed.
+   If you set **Root Directory** to `game` instead, Vercel uses `game/vercel.json`, which runs the
+   same commands from inside `game/`. Either setting works.
+3. Click **Deploy**. No environment variables, API keys, database or backend are needed.
 
 NASA data, fonts and models are committed in `game/public/` and copied into the build. Asset-generation scripts do not need to run during deployment. The existing GitHub Pages workflow is separate from Vercel.
 
